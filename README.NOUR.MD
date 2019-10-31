@@ -66,11 +66,11 @@ https://twilco.github.io/riscv-from-scratch/2019/04/27/riscv-from-scratch-2.html
 - Proxy-kernel ?
 
 
-## AXSPIKE development conventions
+## Variable FPU QEMU development conventions
 
 **@AXSPIKE** : means that the note is related to AXSPIKE development process
 **@TODO**    : something should be revisited/corrected/enhanced.
-
+**@AXSPIKE_TEST** : lines inserted to test AXSPIKE-related functionalities.
 
 
  

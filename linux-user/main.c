@@ -59,6 +59,13 @@ unsigned long mmap_min_addr;
 unsigned long guest_base;
 int have_guest_base;
 
+/*  @AXSPIKE AxSpike-Related information 
+ */
+// static int gdbstub_port;
+// ax_mode_t ax_mode;
+uint8_t exp_bits = 0;
+uint8_t frac_bits = 0;
+
 /*
  * When running 32-on-64 we should make sure we can fit all of the possible
  * guest address space into a contiguous chunk of virtual host memory.
@@ -398,6 +405,24 @@ static void handle_arg_abi_call0(const char *arg)
 }
 #endif
 
+#if defined(TARGET_RISCV)
+static void handle_arg_expbits(const char *arg)
+{
+    exp_bits = (uint8_t)atoi(arg);
+}
+
+static void handle_arg_fracbits(const char *arg)
+{
+    frac_bits = (uint8_t)atoi(arg);
+}
+
+// static void handle_arg_axmode(const char *arg)
+// {
+//     axmode = (uint8_t)atoi(arg);
+// }
+
+#endif
+
 struct qemu_argument {
     const char *argv;
     const char *env;
@@ -454,6 +479,14 @@ static const struct qemu_argument arg_table[] = {
 #if defined(TARGET_XTENSA)
     {"xtensa-abi-call0", "QEMU_XTENSA_ABI_CALL0", false, handle_arg_abi_call0,
      "",           "assume CALL0 Xtensa ABI"},
+#endif
+#if defined(TARGET_RISCV)
+    {"expbits",          "",         true,  handle_arg_expbits,
+     "<EXP_BITS>",       "The FPU exponent bit-width"},
+    {"fracbits",          "",         true,  handle_arg_fracbits,
+     "<FRAC_BITS>",       "The FPU fraction bit-width"},
+    // {"axmode",          "",         true,  handle_arg_expbits,
+    //  "",       "The FPU exponent bit-width"},
 #endif
     {NULL, NULL, false, NULL, NULL, NULL}
 };
@@ -645,6 +678,10 @@ int main(int argc, char **argv, char **envp)
     qemu_add_opts(&qemu_trace_opts);
 
     optind = parse_args(argc, argv);
+
+    // @AXSPIKE_TEST Here all the args are supposed to be parsed.
+    // printf("@AXSPIKE_TEST   Expbits = %d    Fracbits = %d", exp_bits, frac_bits);
+    // exit(-1);
 
     if (!trace_init_backends()) {
         exit(1);
