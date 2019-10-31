@@ -220,7 +220,9 @@ GEN_INPUT_FLUSH3(float64_input_flush3, float64)
  * the use of hardfloat, since hardfloat relies on the inexact flag being
  * already set.
  */
-#if defined(TARGET_PPC) || defined(__FAST_MATH__)
+/* @AXSPIKE @TODO : When RISCV is activated, FPU instructions will be forced to execute in SW emulation.
+ */
+#if defined(TARGET_PPC) || defined(__FAST_MATH__) || defined(TARGET_RISCV)
 # if defined(__FAST_MATH__)
 #  warning disabling hardfloat due to -ffast-math: hardfloat requires an exact \
     IEEE implementation
