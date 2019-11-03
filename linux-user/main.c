@@ -63,8 +63,8 @@ int have_guest_base;
  */
 // static int gdbstub_port;
 // ax_mode_t ax_mode;
-uint8_t exp_bits = 0;
-uint8_t frac_bits = 0;
+static uint8_t exp_bits = 0;
+static uint8_t frac_bits = 0;
 
 /*
  * When running 32-on-64 we should make sure we can fit all of the possible

@@ -72,6 +72,7 @@ https://twilco.github.io/riscv-from-scratch/2019/04/27/riscv-from-scratch-2.html
 **@TODO**    : something should be revisited/corrected/enhanced.
 **@AXSPIKE_TEST** : lines inserted to test AXSPIKE-related functionalities.
 
+We defined **USE_AXSPIKE** flag in `softfloat.c` that will choose if we should use **softfloat** or **flexfloat**.
 
  
 

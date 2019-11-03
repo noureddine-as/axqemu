@@ -15,7 +15,7 @@
    limitations under the License.
 */
 
-#include "flexfloat.h"
+#include "fpu/flexfloat.h"
 // To avoid manually discerning backend-type for calls from math.h
 #include <tgmath.h>
 
@@ -76,7 +76,7 @@ uint_t flexfloat_pack(flexfloat_desc_t desc, bool sign, int_fast16_t exp, uint_t
 
 uint_t flexfloat_denorm_pack(flexfloat_desc_t desc, bool sign, uint_t frac)
 {
-    int_fast16_t bias    = flexfloat_bias(desc);
+    // int_fast16_t bias    = flexfloat_bias(desc);
     return PACK(sign, 0, frac << (NUM_BITS_FRAC - desc.frac_bits));
 }
 
@@ -310,7 +310,7 @@ void flexfloat_sanitize(flexfloat_t *a)
         exp  = inf_exp;
         // Sanitize to canonical NaN (positive sign, quiet bit set)
         sign = 0;
-        frac = UINT_C(1) << a->desc.frac_bits-1;
+        frac = UINT_C(1) << (a->desc.frac_bits-1);
     }
     else if(exp == INF_EXP) // Inf
     {
@@ -542,11 +542,11 @@ INLINE void ff_min(flexfloat_t *dest, const flexfloat_t *a, const flexfloat_t *b
     dest->value = fmin(a->value,b->value);
     // fmin's zero sign handling is implementation defined! Check for 0 cases and ensure -0 is chosen
     if ((a->value == 0) && (a->value == b->value))
-        CAST_TO_INT(dest->value) = (UINT_C(0x1) << NUM_BITS-1);
+        CAST_TO_INT(dest->value) = (UINT_C(0x1) << (NUM_BITS-1));
     #ifdef FLEXFLOAT_TRACKING
     dest->exact_value = fmin(a->exact_value,b->exact_value);
     if ((a->exact_value == 0) && (a->exact_value == b->exact_value))
-        CAST_TO_INT(dest->exact_value) = (UINT_C(0x1) << NUM_BITS-1);
+        CAST_TO_INT(dest->exact_value) = (UINT_C(0x1) << (NUM_BITS-1));
     if(dest->tracking_fn) (dest->tracking_fn)(dest, dest->tracking_arg);
     #endif
     flexfloat_sanitize(dest);
@@ -732,15 +732,15 @@ CastStats * getCastStats(const flexfloat_desc_t desc1, const flexfloat_desc_t de
     return (CastStats *) result;
 }
 
-INLINE void ff_start_stats() {
+INLINE void ff_start_stats(void) {
     StatsEnabled = 1;
 }
 
-INLINE void ff_stop_stats() {
+INLINE void ff_stop_stats(void) {
     StatsEnabled = 0;
 }
 
-void ff_clear_stats() {
+void ff_clear_stats(void) {
     int i;
     for(i=0; i<FLEXFLOAT_STATS_MAX_TYPES; ++i)
         if(op_stats[i].key != 0) free(op_stats[i].value);
@@ -750,7 +750,7 @@ void ff_clear_stats() {
     memset(cast_stats, 0, sizeof(HashSlot) * FLEXFLOAT_STATS_MAX_TYPES*FLEXFLOAT_STATS_MAX_TYPES);
 }
 
-void ff_print_stats() {
+void ff_print_stats(void) {
     int i;
     printf("-- OPERATIONS -- \n");
     for(i=0; i<FLEXFLOAT_STATS_MAX_TYPES; ++i) {

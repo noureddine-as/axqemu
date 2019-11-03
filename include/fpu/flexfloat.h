@@ -199,7 +199,7 @@ void flexfloat_sanitize(flexfloat_t *a);
 uint_t flexfloat_pack_bits(flexfloat_desc_t desc, uint_t bits);
 void flexfloat_set_bits(flexfloat_t *a, uint_t bits);
 uint_t flexfloat_get_bits(flexfloat_t *a);
-
+uint_t flexfloat_denorm_pack(flexfloat_desc_t desc, bool sign, uint_t frac);
 
 // Constructors
 
@@ -260,6 +260,9 @@ extern bool StatsEnabled;
 extern HashSlot   op_stats[FLEXFLOAT_STATS_MAX_TYPES];
 extern HashSlot cast_stats[FLEXFLOAT_STATS_MAX_TYPES*FLEXFLOAT_STATS_MAX_TYPES];
 
+void * ht_search(HashSlot* hashArray, uint32_t hashIndex, uint32_t key, uint32_t arraySize);
+void ht_insert(HashSlot* hashArray, uint32_t hashIndex, uint32_t key, void *value, uint32_t arraySize);
+
 typedef struct {
     uint64_t minus;
     uint64_t add;
@@ -295,10 +298,10 @@ static inline uint32_t precision_hash2 (const flexfloat_desc_t desc1, const flex
 OpStats * getOpStats(const flexfloat_desc_t desc);
 CastStats * getCastStats(const flexfloat_desc_t desc1, const flexfloat_desc_t desc2);
 
-void ff_start_stats();
-void ff_stop_stats();
-void ff_clear_stats();
-void ff_print_stats();
+void ff_start_stats(void);
+void ff_stop_stats(void);
+void ff_clear_stats(void);
+void ff_print_stats(void);
 
 #endif /* FLEXFLOAT_STATS */
 
