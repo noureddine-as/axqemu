@@ -40,9 +40,8 @@ float64_t f64_add_d_custom(float64_t frs1, float64_t frs2, float_status *status)
 float64_t f64_sub_d_custom(float64_t frs1, float64_t frs2, float_status *status);
 float64_t f64_mul_d_custom(float64_t frs1, float64_t frs2, float_status *status);
 
-float64_t f64_madd_d_custom(float64_t frs1, float64_t frs2, float64_t frs3, float_status *s);
+float64_t f64_madd_d_custom(float64_t frs1, float64_t frs2, float64_t frs3, float_status *status);
 float64_t f64_sqrt_d_custom(float64_t frs1, float_status *status);
-// float64_t f64_div_d_custom(float64_t frs1, float64_t frs2, float_status *status);
 float64_t f64_div_d_custom(float64_t frs1, float64_t frs2, float_status *status);
 
 

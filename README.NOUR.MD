@@ -14,6 +14,12 @@ cd build
 make
 ```
 
+In order to make debugging QEMU itself using GDB (on x86) possible:
+```
+../configure --target-list=riscv64-linux-user --enable-debug
+```
+
+
 ## Usage
 
 ### To be sourced/defined

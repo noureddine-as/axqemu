@@ -5,12 +5,19 @@
 #include "fpu/axspike.h"
 #include "fpu/softfloat.h"
 
-// extern uint8_t exp_bits;
-// extern uint8_t frac_bits;
+// #if defined( CONFIG_USER_ONLY )
+// Getting EXP and FRAC from ARGS
 
-static uint8_t exp_bits = 11;
-static uint8_t frac_bits = 52;
+#define FLEXFLOAT_ALWAYS_INEXACT
 
+extern unsigned int exp_bits;
+extern unsigned int frac_bits;
+
+// #else
+// // For now, just hard-code it when run in softmmu mode.
+// static uint8_t exp_bits = 7;
+// static uint8_t frac_bits = 21;
+// #endif
 
 float64_t f64_add_d_custom(float64_t frs1, float64_t frs2, float_status *status)
 {
@@ -41,6 +48,11 @@ float64_t f64_add_d_custom(float64_t frs1, float64_t frs2, float_status *status)
 
   // then to f64()
   f64_out = *(float64_t *)&dRD;
+
+#if defined( FLEXFLOAT_ALWAYS_INEXACT )
+  // We suppose that all our computations are inexact, this is a very conservative approach
+  status->float_exception_flags |= float_flag_inexact;
+#endif
 
   return f64_out;
 }
@@ -74,6 +86,11 @@ float64_t f64_sub_d_custom(float64_t frs1, float64_t frs2, float_status *status)
   // then to f64()
   f64_out = *(float64_t *)&dRD;
 
+#if defined( FLEXFLOAT_ALWAYS_INEXACT )
+  // We suppose that all our computations are inexact, this is a very conservative approach
+  status->float_exception_flags |= float_flag_inexact;
+#endif
+
   return f64_out;
 }
 
@@ -105,6 +122,11 @@ float64_t f64_mul_d_custom(float64_t frs1, float64_t frs2, float_status *status)
   // then to f64()
   f64_out = *(float64_t *)&dRD;
 
+#if defined( FLEXFLOAT_ALWAYS_INEXACT )
+  // We suppose that all our computations are inexact, this is a very conservative approach
+  status->float_exception_flags |= float_flag_inexact;
+#endif
+
   return f64_out;
 }
 
@@ -135,6 +157,11 @@ float64_t f64_div_d_custom(float64_t frs1, float64_t frs2, float_status *status)
 
   // then to f64()
   f64_out = *(float64_t *)&dRD;
+
+#if defined( FLEXFLOAT_ALWAYS_INEXACT )
+  // We suppose that all our computations are inexact, this is a very conservative approach
+  status->float_exception_flags |= float_flag_inexact;
+#endif
 
   return f64_out;
 }
@@ -184,44 +211,55 @@ float64_t f64_sqrt_d_custom(float64_t frs1, float_status *status)
   // printf("Dout_reduced = 0x%0lX\n",  *(uint64_t *)&(Dout_reduced));
 
   float64_t fRd; fRd.v = *(uint64_t *)&(Dout_reduced);  
+
+#if defined( FLEXFLOAT_ALWAYS_INEXACT )
+  // We suppose that all our computations are inexact, this is a very conservative approach
+  status->float_exception_flags |= float_flag_inexact;
+#endif
+
   return fRd; //f64_a;
 }
-// float64_t f64_sqrt_d_custom(float64_t frs1, float_status *status)
-// {
-//   float64_t f64_a, f64_out;
-//   flexfloat_t reduced_in;
-//   double Din;
-//   f64_a = frs1;
-//   Din = *(double *)&f64_a;
-//   ff_init_double(&reduced_in, Din, (flexfloat_desc_t){exp_bits, frac_bits});
+/*
+float64_t f64_sqrt_d_custom(float64_t frs1, float_status *status)
+{
+    float64_t f64_a, f64_out;
+    flexfloat_t reduced_in;
+    double Din;
+    f64_a = frs1;
+    Din = *(double *)&f64_a;
+    ff_init_double(&reduced_in, Din, (flexfloat_desc_t){exp_bits, frac_bits});
 
-//   f64_a.v = float64_sqrt(frs1.v, status); //f64_sqrt(frs1);
+    f64_a.v = float64_sqrt(frs1.v, status);
 
-//   // translate f64 to double then to flexfloat < Exp , Frac >
-//   // double dRS1;
-//   // dRS1 = *(double *)&f64_a;
+    // translate f64 to double then to flexfloat < Exp , Frac >
+    double dRS1;
+    dRS1 = *(double *)&f64_a;
 
-//   // do addition in flexfloat < Exp , Frac >
-//   flexfloat_t reduced_out;
-//   ff_init(&reduced_out, (flexfloat_desc_t){exp_bits, frac_bits});
-//   flexfloat_set_bits(&reduced_out, f64_a.v  /* @TODO : eliminate the LSBs ? */ );
-//   //ff_init_double(&reduced_out, dRS1, (flexfloat_desc_t){exp_bits, frac_bits});
+    // do addition in flexfloat < Exp , Frac >
+    flexfloat_t reduced_out;
+    ff_init_double(&reduced_out, dRS1, (flexfloat_desc_t){exp_bits, frac_bits});
 
-//   // if (this->fpu_dump_enabled)
-//   //   fprintf(this->fpu_dump_files["FSQRT_D"], "%016" PRIX64 " %016" PRIX64 "\r\n", flexfloat_get_bits(&reduced_in),
-//   //                                                                               flexfloat_get_bits(&reduced_out));
+    // if (fpu_dump_enabled)
+    //   fprintf(fpu_dump_files["FSQRT_D"], "%016" PRIX64 " %016" PRIX64 "\r\n", flexfloat_get_bits(&reduced_in),
+    //                                                                               flexfloat_get_bits(&reduced_out));
 
-//   // translate back to double (get double)
-//   double dRD = ff_get_double(&reduced_out);
 
-//   // then to f64()
-//   f64_out = *(float64_t *)&dRD;
+    // translate back to double (get double)
+    double dRD = ff_get_double(&reduced_out);
 
-//   return f64_out;
-// }
+    // then to f64()
+    f64_out = *(float64_t *)&dRD;
 
+#if defined( FLEXFLOAT_ALWAYS_INEXACT )
+  // We suppose that all our computations are inexact, this is a very conservative approach
+  status->float_exception_flags |= float_flag_inexact;
+#endif
+
+    return f64_out;
+}
+*/
 // @TODO use the flags and the status
-float64_t f64_madd_d_custom(float64_t frs1, float64_t frs2, float64_t frs3, float_status *s)
+float64_t f64_madd_d_custom(float64_t frs1, float64_t frs2, float64_t frs3, float_status *status)
 {
   float64_t f64_a, f64_b, f64_c, f64_out;
   f64_a = frs1;
@@ -255,6 +293,11 @@ float64_t f64_madd_d_custom(float64_t frs1, float64_t frs2, float64_t frs3, floa
 
   // then to f64()
   f64_out = *(float64_t *)&dRD;
+
+#if defined( FLEXFLOAT_ALWAYS_INEXACT )
+  // We suppose that all our computations are inexact, this is a very conservative approach
+  status->float_exception_flags |= float_flag_inexact;
+#endif
 
   return f64_out;
 }

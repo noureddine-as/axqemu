@@ -24,7 +24,7 @@
 #include "fpu/softfloat.h"
 #include "fpu/axspike.h"
 
-#define USE_FLEXFLOAT 1
+# define USE_FLEXFLOAT 1
 
 target_ulong riscv_cpu_get_fflags(CPURISCVState *env)
 {

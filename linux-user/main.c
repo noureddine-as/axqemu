@@ -63,8 +63,8 @@ int have_guest_base;
  */
 // static int gdbstub_port;
 // ax_mode_t ax_mode;
-static uint8_t exp_bits = 0;
-static uint8_t frac_bits = 0;
+unsigned int exp_bits;
+unsigned int frac_bits;
 
 /*
  * When running 32-on-64 we should make sure we can fit all of the possible
@@ -872,6 +872,14 @@ int main(int argc, char **argv, char **envp)
     tcg_region_init();
 
     target_cpu_copy_regs(env, regs);
+
+    // @AXSPIKE : ensure that exp and frac bit-widths aren't zeroes.
+    if ((!exp_bits) || (!frac_bits))
+    {
+        fprintf(stderr, "Exp_Bits = %d         Frac_Bits = %d\n", exp_bits, frac_bits);
+        fprintf(stderr, "neither of exp_bits or frac_bits should be equal to zero.");
+        exit(-1);
+    }
 
     if (gdbstub_port) {
         if (gdbserver_start(gdbstub_port) < 0) {
