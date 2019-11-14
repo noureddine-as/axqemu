@@ -21,6 +21,10 @@
 #include "qemu/host-utils.h"
 #include "exec/exec-all.h"
 #include "exec/helper-proto.h"
+#include "fpu/softfloat.h"
+#include "fpu/axspike.h"
+
+# define USE_FLEXFLOAT 1
 
 target_ulong riscv_cpu_get_fflags(CPURISCVState *env)
 {
@@ -88,7 +92,18 @@ uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                         uint64_t frs3)
 {
+#if defined( USE_FLEXFLOAT )
+    float64_t frs1_in; frs1_in.v = frs1;  
+    float64_t frs2_in; frs2_in.v = frs2;
+    float64_t frs3_in; frs3_in.v = frs3;
+    float64_t frs_out;
+    frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
+    return frs_out.v;
+    // fprintf(stderr, "FPU insn not implented yet.");
+    // exit(-1);
+#else
     return float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
+#endif
 }
 
 uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
@@ -101,8 +116,19 @@ uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                         uint64_t frs3)
 {
+#if defined( USE_FLEXFLOAT )
+    float64_t frs1_in; frs1_in.v = frs1;  
+    float64_t frs2_in; frs2_in.v = frs2;
+    float64_t frs3_in; frs3_in.v = frs3; frs3_in.v = frs3_in.v ^ ((uint64_t)1 << 63);
+    float64_t frs_out;
+    frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
+    return frs_out.v;
+    fprintf(stderr, "FMSUB_D has been invoked, but it hasn't been tested during development.");
+    // exit(-1);
+#else
     return float64_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                           &env->fp_status);
+#endif
 }
 
 uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
@@ -112,11 +138,25 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                           &env->fp_status);
 }
 
+#define F32_SIGN ((uint32_t)1 << 31)
+#define F64_SIGN ((uint64_t)1 << 63)
+
 uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                          uint64_t frs3)
 {
+#if defined( USE_FLEXFLOAT )
+    float64_t frs1_in; frs1_in.v = (uint64_t)(frs1 ^ F64_SIGN);
+    float64_t frs2_in; frs2_in.v = frs2;
+    float64_t frs3_in; frs3_in.v = frs3;
+    float64_t frs_out;
+    frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
+    return frs_out.v;
+    fprintf(stderr, "FNMSUB_D has been invoked, but it hasn't been tested during development.");
+    // exit(-1);
+#else
     return float64_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
+#endif
 }
 
 uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
@@ -129,8 +169,19 @@ uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                          uint64_t frs3)
 {
+#if defined( USE_FLEXFLOAT )
+    float64_t frs1_in; frs1_in.v = frs1; frs1_in.v = frs1_in.v ^ ((uint64_t)1 << 63);
+    float64_t frs2_in; frs2_in.v = frs2;
+    float64_t frs3_in; frs3_in.v = frs3; frs3_in.v = frs3_in.v ^ ((uint64_t)1 << 63);
+    float64_t frs_out;
+    frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
+    return frs_out.v;
+    fprintf(stderr, "FNMADD_D has been invoked, but it hasn't been tested during development.");
+    // exit(-1);
+#else
     return float64_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
+#endif
 }
 
 uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
@@ -248,22 +299,62 @@ target_ulong helper_fclass_s(uint64_t frs1)
 
 uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
+#if defined( USE_FLEXFLOAT )
+    float64_t frs1_in; frs1_in.v = frs1;  
+    float64_t frs2_in; frs2_in.v = frs2;
+    float64_t frs_out;
+    frs_out = f64_add_d_custom(frs1_in, frs2_in, &env->fp_status);
+    return frs_out.v;
+    // fprintf(stderr, "FPU insn not implented yet.");
+    // exit(-1);
+#else
     return float64_add(frs1, frs2, &env->fp_status);
+#endif
 }
 
 uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
+#if defined( USE_FLEXFLOAT )
+    float64_t frs1_in; frs1_in.v = frs1;  
+    float64_t frs2_in; frs2_in.v = frs2;
+    float64_t frs_out;
+    frs_out = f64_sub_d_custom(frs1_in, frs2_in, &env->fp_status);
+    return frs_out.v;
+    // fprintf(stderr, "FPU insn not implented yet.");
+    // exit(-1);
+#else
     return float64_sub(frs1, frs2, &env->fp_status);
+#endif
 }
 
 uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
+#if defined( USE_FLEXFLOAT )
+    float64_t frs1_in; frs1_in.v = frs1;  
+    float64_t frs2_in; frs2_in.v = frs2;
+    float64_t frs_out;
+    frs_out = f64_mul_d_custom(frs1_in, frs2_in, &env->fp_status);
+    return frs_out.v;
+    // fprintf(stderr, "FPU insn not implented yet.");
+    // exit(-1);
+#else
     return float64_mul(frs1, frs2, &env->fp_status);
+#endif
 }
 
 uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
+#if defined( USE_FLEXFLOAT )
+    float64_t frs1_in; frs1_in.v = frs1;  
+    float64_t frs2_in; frs2_in.v = frs2;
+    float64_t frs_out;
+    frs_out = f64_div_d_custom(frs1_in, frs2_in, &env->fp_status);
+    return frs_out.v;
+    // fprintf(stderr, "FPU insn not implented yet.");
+    // exit(-1);
+#else
     return float64_div(frs1, frs2, &env->fp_status);
+#endif
 }
 
 uint64_t helper_fmin_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
@@ -288,7 +379,16 @@ uint64_t helper_fcvt_d_s(CPURISCVState *env, uint64_t rs1)
 
 uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1)
 {
+#if defined( USE_FLEXFLOAT )
+    float64_t frs1_in; frs1_in.v = frs1;  
+    float64_t frs_out;
+    frs_out = f64_sqrt_d_custom(frs1_in, &env->fp_status);
+    return frs_out.v;
+    // fprintf(stderr, "FPU insn not implented yet.");
+    // exit(-1);
+#else
     return float64_sqrt(frs1, &env->fp_status);
+#endif
 }
 
 target_ulong helper_fle_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
