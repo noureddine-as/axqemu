@@ -61,10 +61,11 @@ int have_guest_base;
 
 /*  @AXSPIKE AxSpike-Related information 
  */
-// static int gdbstub_port;
 // ax_mode_t ax_mode;
-unsigned int exp_bits;
-unsigned int frac_bits;
+#include "fpu/flexfloat.h"
+extern uint8_t exp_bits;
+extern uint8_t frac_bits;
+// extern flexfloat_desc_t vpfpu_config_64;
 
 /*
  * When running 32-on-64 we should make sure we can fit all of the possible
@@ -879,6 +880,11 @@ int main(int argc, char **argv, char **envp)
         fprintf(stderr, "Exp_Bits = %d         Frac_Bits = %d\n", exp_bits, frac_bits);
         fprintf(stderr, "neither of exp_bits or frac_bits should be equal to zero.");
         exit(-1);
+    }
+    else {
+        fprintf(stderr, "AXQEMU: Exp_Bits = %d         Frac_Bits = %d\n", exp_bits, frac_bits);
+        //vpfpu_config_64 = (flexfloat_desc_t){0, 0};
+        //vpfpu_config_64 = (flexfloat_desc_t){11, 23};
     }
 
     if (gdbstub_port) {

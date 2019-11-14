@@ -138,11 +138,14 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                           &env->fp_status);
 }
 
+#define F32_SIGN ((uint32_t)1 << 31)
+#define F64_SIGN ((uint64_t)1 << 63)
+
 uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                          uint64_t frs3)
 {
 #if defined( USE_FLEXFLOAT )
-    float64_t frs1_in; frs1_in.v = frs1; frs1_in.v = frs1_in.v ^ ((uint64_t)1 << 63);
+    float64_t frs1_in; frs1_in.v = (uint64_t)(frs1 ^ F64_SIGN);
     float64_t frs2_in; frs2_in.v = frs2;
     float64_t frs3_in; frs3_in.v = frs3;
     float64_t frs_out;

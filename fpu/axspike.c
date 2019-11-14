@@ -1,5 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "qemu/osdep.h"
+
+// #include <stdio.h>
+// #include <stdlib.h>
 
 #include "fpu/flexfloat.h"
 #include "fpu/axspike.h"
@@ -10,8 +12,13 @@
 
 #define FLEXFLOAT_ALWAYS_INEXACT
 
-extern unsigned int exp_bits;
-extern unsigned int frac_bits;
+
+uint8_t exp_bits = 11;
+uint8_t frac_bits = 52;
+
+// #define exp_bits     11
+// #define frac_bits    25
+
 
 // #else
 // // For now, just hard-code it when run in softmmu mode.
@@ -19,7 +26,8 @@ extern unsigned int frac_bits;
 // static uint8_t frac_bits = 21;
 // #endif
 
-float64_t f64_add_d_custom(float64_t frs1, float64_t frs2, float_status *status)
+float64_t QEMU_FLATTEN
+f64_add_d_custom(float64_t frs1, float64_t frs2, float_status *status)
 {
   float64_t f64_a, f64_b, f64_out;
   f64_a = frs1;
@@ -57,7 +65,8 @@ float64_t f64_add_d_custom(float64_t frs1, float64_t frs2, float_status *status)
   return f64_out;
 }
 
-float64_t f64_sub_d_custom(float64_t frs1, float64_t frs2, float_status *status)
+float64_t QEMU_FLATTEN
+f64_sub_d_custom(float64_t frs1, float64_t frs2, float_status *status)
 {
   float64_t f64_a, f64_b, f64_out;
   f64_a = frs1;
@@ -94,7 +103,8 @@ float64_t f64_sub_d_custom(float64_t frs1, float64_t frs2, float_status *status)
   return f64_out;
 }
 
-float64_t f64_mul_d_custom(float64_t frs1, float64_t frs2, float_status *status)
+float64_t QEMU_FLATTEN
+f64_mul_d_custom(float64_t frs1, float64_t frs2, float_status *status)
 {
   float64_t f64_a, f64_b, f64_out;
   f64_a = frs1;
@@ -130,7 +140,8 @@ float64_t f64_mul_d_custom(float64_t frs1, float64_t frs2, float_status *status)
   return f64_out;
 }
 
-float64_t f64_div_d_custom(float64_t frs1, float64_t frs2, float_status *status)
+float64_t QEMU_FLATTEN
+f64_div_d_custom(float64_t frs1, float64_t frs2, float_status *status)
 {
   float64_t f64_a, f64_b, f64_out;
   f64_a = frs1;
@@ -168,7 +179,8 @@ float64_t f64_div_d_custom(float64_t frs1, float64_t frs2, float_status *status)
 
 /* @TODO: DIVision is still being done using float64_t
   */
-float64_t f64_sqrt_d_custom(float64_t frs1, float_status *status)
+float64_t QEMU_FLATTEN
+f64_sqrt_d_custom(float64_t frs1, float_status *status)
 {
   // Copy in the input
   float64_t f64_a;  f64_a = frs1;
@@ -220,7 +232,8 @@ float64_t f64_sqrt_d_custom(float64_t frs1, float_status *status)
   return fRd; //f64_a;
 }
 /*
-float64_t f64_sqrt_d_custom(float64_t frs1, float_status *status)
+float64_t QEMU_FLATTEN
+f64_sqrt_d_custom(float64_t frs1, float_status *status)
 {
     float64_t f64_a, f64_out;
     flexfloat_t reduced_in;
@@ -258,8 +271,10 @@ float64_t f64_sqrt_d_custom(float64_t frs1, float_status *status)
     return f64_out;
 }
 */
+
 // @TODO use the flags and the status
-float64_t f64_madd_d_custom(float64_t frs1, float64_t frs2, float64_t frs3, float_status *status)
+float64_t QEMU_FLATTEN
+f64_madd_d_custom(float64_t frs1, float64_t frs2, float64_t frs3, float_status *status)
 {
   float64_t f64_a, f64_b, f64_c, f64_out;
   f64_a = frs1;
