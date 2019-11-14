@@ -299,7 +299,7 @@ libs_softmmu=""
 libs_tools=""
 audio_pt_int=""
 audio_win_int=""
-libs_qga=""
+libs_qga="$SIFIVE_LIBS_QGA"
 debug_info="yes"
 stack_protector=""
 

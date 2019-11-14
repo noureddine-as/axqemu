@@ -3169,11 +3169,7 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_h:
                 help(0);
                 break;
-            case QEMU_OPTION_version:
-                version();
-                exit(0);
-                break;
-            case QEMU_OPTION_m:
+            case QEMU_OPTION_version: version(); fflush(stdout); if (argc < 3) { exit(0); } break; case QEMU_OPTION_m:
                 opts = qemu_opts_parse_noisily(qemu_find_opts("memory"),
                                                optarg, true);
                 if (!opts) {

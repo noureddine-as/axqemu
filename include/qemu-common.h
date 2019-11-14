@@ -18,7 +18,7 @@
 
 /* Bug reporting information for --help arguments, About dialogs, etc */
 #define QEMU_HELP_BOTTOM \
-    "See <https://qemu.org/contribute/report-a-bug> for how to report bugs.\n" \
+    "For bug reports: https://github.com/sifive/freedom-tools/issues\n" \
     "More information on the QEMU project at <https://qemu.org>."
 
 /* main function, renamed */
