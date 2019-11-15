@@ -133,6 +133,14 @@ int main(int argc, char **argv)
 
 #define MAX_VIRTIO_CONSOLES 1
 
+/*  @AXSPIKE AxSpike-Related information 
+ */
+// ax_mode_t ax_mode;
+#include "fpu/flexfloat.h"
+extern uint8_t exp_bits;
+extern uint8_t frac_bits;
+// extern flexfloat_desc_t vpfpu_config_64;
+
 static const char *data_dir[16];
 static int data_dir_idx;
 const char *bios_name = NULL;
@@ -2339,6 +2347,25 @@ static void add_device_config(int type, const char *cmdline)
     QTAILQ_INSERT_TAIL(&device_configs, conf, next);
 }
 
+// @AXSPIKE @TODO
+// #if defined(TARGET_RISCV)
+static void handle_arg_expbits(const char *arg)
+{
+    exp_bits = (uint8_t)atoi(arg);
+}
+
+static void handle_arg_fracbits(const char *arg)
+{
+    frac_bits = (uint8_t)atoi(arg);
+}
+
+// static void handle_arg_axmode(const char *arg)
+// {
+//     axmode = (uint8_t)atoi(arg);
+// }
+
+// #endif
+
 static int foreach_device_config(int type, int (*func)(const char *cmdline))
 {
     struct device_config *conf;
@@ -3222,6 +3249,14 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_gdb:
                 add_device_config(DEV_GDB, optarg);
                 break;
+// #if defined(TARGET_RISCV)
+            case QEMU_OPTION_expbits:
+                handle_arg_expbits(optarg);
+                break;
+            case QEMU_OPTION_fracbits:
+                handle_arg_fracbits(optarg);
+                break;
+// #endif
             case QEMU_OPTION_L:
                 if (is_help_option(optarg)) {
                     list_data_dirs = true;
@@ -3847,6 +3882,11 @@ int main(int argc, char **argv, char **envp)
             }
         }
     }
+
+    // @AXSPIKE_TEST Here all the args are supposed to be parsed.
+    // printf("@AXSPIKE_TEST   Expbits = %d    Fracbits = %d", exp_bits, frac_bits);
+    // exit(-1);
+
     /*
      * Clear error location left behind by the loop.
      * Best done right after the loop.  Do not insert code here!

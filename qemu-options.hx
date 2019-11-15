@@ -3605,6 +3605,22 @@ within gdb and establish the connection via a pipe:
 @end example
 ETEXI
 
+DEF("expbits", HAS_ARG, QEMU_OPTION_expbits, \
+    "-expbits expbitwidth     Set exponent bitwidth of the FPU to val\n", QEMU_ARCH_RISCV)
+STEXI
+@item -expbits @var{expbitwidth}
+@findex -expbits
+Set the exponent bitwidth to @var{expbitwidth}.
+ETEXI
+
+DEF("fracbits", HAS_ARG, QEMU_OPTION_fracbits, \
+    "--fracbits fracbitwidth     Set fraction bitwidth of the FPU to val\n", QEMU_ARCH_RISCV)
+STEXI
+@item -fracbits @var{fracbitwidth}
+@findex -fracbits
+Set the exponent bitwidth to @var{fracbitwidth}.
+ETEXI
+
 DEF("s", 0, QEMU_OPTION_s, \
     "-s              shorthand for -gdb tcp::" DEFAULT_GDBSTUB_PORT "\n",
     QEMU_ARCH_ALL)
