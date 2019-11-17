@@ -21,7 +21,7 @@
 
 #if defined(FLEXFLOAT_ROUNDING)|| defined(FLEXFLOAT_FLAGS)
 #include <fenv.h>
-#pragma STDC FENV_ACCESS ON
+// #pragma STDC FENV_ACCESS ON
 #endif
 
 #include "assert.h"
@@ -135,8 +135,8 @@ bool flexfloat_round_bit(const flexfloat_t *a, int_fast16_t exp)
     {
         int shift = (- exp + 1);
         uint_t denorm = 0;
-        if(shift < NUM_BITS)
-          denorm = ((CAST_TO_INT(a->value) & MASK_FRAC | MASK_FRAC_MSB)) >> shift;
+        if(shift < NUM_BITS)  // @TODO i added parentheses around &
+          denorm = (((CAST_TO_INT(a->value) & MASK_FRAC) | MASK_FRAC_MSB)) >> shift;
         return denorm & (UINT_C(0x1) << (NUM_BITS_FRAC - a->desc.frac_bits - 1));
     }
     else
@@ -167,7 +167,7 @@ bool flexfloat_sticky_bit(const flexfloat_t *a, int_fast16_t exp)
 bool flexfloat_nearest_rounding(const flexfloat_t *a, int_fast16_t exp)
 {
     if (flexfloat_round_bit(a, exp))
-        if (flexfloat_sticky_bit(a, exp)) // > ulp/2 away
+    {   if (flexfloat_sticky_bit(a, exp)) // > ulp/2 away
         {
             return 1;
         }
@@ -177,6 +177,7 @@ bool flexfloat_nearest_rounding(const flexfloat_t *a, int_fast16_t exp)
                 return flexfloat_denorm_frac(a, exp) & 0x1;
             return flexfloat_frac(a) & 0x1;
         }
+    }
     return 0; // < ulp/2 away
 }
 

@@ -24,7 +24,11 @@
 #include "fpu/softfloat.h"
 #include "fpu/axspike.h"
 
-# define USE_FLEXFLOAT 1
+// #define USE_FLEXFLOAT 1
+#define USE_GVSOC_DEF 1
+
+extern uint8_t exp_bits;
+extern uint8_t frac_bits;
 
 target_ulong riscv_cpu_get_fflags(CPURISCVState *env)
 {
@@ -101,6 +105,10 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     return frs_out.v;
     // fprintf(stderr, "FPU insn not implented yet.");
     // exit(-1);
+#elif defined( USE_GVSOC_DEF )
+    return lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits, frac_bits);
+    fprintf(stderr, "FPU insn not implented yet.");
+    exit(-1);
 #else
     return float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
@@ -125,6 +133,9 @@ uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     return frs_out.v;
     fprintf(stderr, "FMSUB_D has been invoked, but it hasn't been tested during development.");
     // exit(-1);
+#elif defined( USE_GVSOC_DEF )
+    fprintf(stderr, "FMSUB_D has been invoked, but it hasn't been tested during development.");
+    exit(-1);
 #else
     return float64_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                           &env->fp_status);
@@ -153,6 +164,9 @@ uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     return frs_out.v;
     fprintf(stderr, "FNMSUB_D has been invoked, but it hasn't been tested during development.");
     // exit(-1);
+#elif defined( USE_GVSOC_DEF )
+    fprintf(stderr, "FNMSUB_D has been invoked, but it hasn't been tested during development.");
+    exit(-1);
 #else
     return float64_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
@@ -178,6 +192,9 @@ uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     return frs_out.v;
     fprintf(stderr, "FNMADD_D has been invoked, but it hasn't been tested during development.");
     // exit(-1);
+#elif defined( USE_GVSOC_DEF )
+    fprintf(stderr, "FNMADD_D has been invoked, but it hasn't been tested during development.");
+    exit(-1);
 #else
     return float64_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
@@ -307,6 +324,9 @@ uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
     return frs_out.v;
     // fprintf(stderr, "FPU insn not implented yet.");
     // exit(-1);
+#elif defined( USE_GVSOC_DEF )
+    fprintf(stderr, "FPU insn not implented yet.");
+    exit(-1);
 #else
     return float64_add(frs1, frs2, &env->fp_status);
 #endif
@@ -322,6 +342,9 @@ uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
     return frs_out.v;
     // fprintf(stderr, "FPU insn not implented yet.");
     // exit(-1);
+#elif defined( USE_GVSOC_DEF )
+    fprintf(stderr, "FPU insn not implented yet.");
+    exit(-1);
 #else
     return float64_sub(frs1, frs2, &env->fp_status);
 #endif
@@ -337,6 +360,9 @@ uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
     return frs_out.v;
     // fprintf(stderr, "FPU insn not implented yet.");
     // exit(-1);
+#elif defined( USE_GVSOC_DEF )
+    fprintf(stderr, "FPU insn not implented yet.");
+    exit(-1);
 #else
     return float64_mul(frs1, frs2, &env->fp_status);
 #endif
@@ -352,6 +378,9 @@ uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
     return frs_out.v;
     // fprintf(stderr, "FPU insn not implented yet.");
     // exit(-1);
+#elif defined( USE_GVSOC_DEF )
+    fprintf(stderr, "FPU insn not implented yet.");
+    exit(-1);
 #else
     return float64_div(frs1, frs2, &env->fp_status);
 #endif
@@ -386,6 +415,9 @@ uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1)
     return frs_out.v;
     // fprintf(stderr, "FPU insn not implented yet.");
     // exit(-1);
+#elif defined( USE_GVSOC_DEF )
+    fprintf(stderr, "FPU insn not implented yet.");
+    exit(-1);
 #else
     return float64_sqrt(frs1, &env->fp_status);
 #endif

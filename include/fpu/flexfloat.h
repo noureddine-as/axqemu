@@ -37,7 +37,8 @@ extern "C" {
 // Enable FP environment access for rounding and flags
 #if defined(FLEXFLOAT_ROUNDING) || defined(FLEXFLOAT_FLAGS)
 #include <fenv.h>
-#pragma STDC FENV_ACCESS ON
+// @TODO This pragma is only supported by C++11
+// #pragma STDC FENV_ACCESS ON
 #endif
 
 #ifndef __STDC_IEC_559__
@@ -324,6 +325,17 @@ static inline void ff_track_callback (flexfloat_t *a, ff_function_p fn, void *ar
 }
 
 #endif /* FLEXFLOAT_TRACKING */
+
+// Rounding stuff
+#ifdef FLEXFLOAT_ROUNDING
+
+bool flexfloat_round_bit(const flexfloat_t *a, int_fast16_t exp);
+bool flexfloat_sticky_bit(const flexfloat_t *a, int_fast16_t exp);
+bool flexfloat_nearest_rounding(const flexfloat_t *a, int_fast16_t exp);
+bool flexfloat_inf_rounding(const flexfloat_t *a, int_fast16_t exp, bool sign, bool plus);
+int_t flexfloat_rounding_value(const flexfloat_t *a, int_fast16_t exp, bool sign);
+
+#endif /* FLEXFLOAT_ROUNDING */
 
 #endif
 
