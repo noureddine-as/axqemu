@@ -17,40 +17,19 @@
                                                      "----------------------------------------------------------------------------\n")
 
 
-// typedef struct
-// {
-//   uint16_t v;
-// } float16_t;
-// typedef struct
-// {
-//   uint32_t v;
-// } float32_t;
-// typedef struct
-// {
-//   uint64_t v;
-// } float64_t;
-// typedef struct
-// {
-//   uint64_t v[2];
-// } float128_t;
-
-
-
-// float64_t f64_add_d_custom(float64_t frs1, float64_t frs2, float_status *status);
-// float64_t f64_sub_d_custom(float64_t frs1, float64_t frs2, float_status *status);
-// float64_t f64_mul_d_custom(float64_t frs1, float64_t frs2, float_status *status);
-
-// float64_t f64_madd_d_custom(float64_t frs1, float64_t frs2, float64_t frs3, float_status *status);
-// float64_t f64_sqrt_d_custom(float64_t frs1, float_status *status);
-// float64_t f64_div_d_custom(float64_t frs1, float64_t frs2, float_status *status);
-
-
 #define FF_INIT_1(a, e, m) \
   flexfloat_t ff_a, ff_res; \
   flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
   ff_init(&ff_a, env); \
   ff_init(&ff_res, env); \
   flexfloat_set_bits(&ff_a, a);
+
+#define FF_INIT_1_double(a, e, m) \
+  uint64_t aa = a; \
+  flexfloat_t ff_a, ff_res; \
+  flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
+  ff_init_double(&ff_a, *(double *)( &aa ), env); \
+  ff_init_double(&ff_res, 0.0, env);
 
 #define FF_INIT_2(a, b, e, m) \
   flexfloat_t ff_a, ff_b, ff_res; \
@@ -60,6 +39,14 @@
   ff_init(&ff_res, env); \
   flexfloat_set_bits(&ff_a, a); \
   flexfloat_set_bits(&ff_b, b);
+
+#define FF_INIT_2_double(a, b, e, m) \
+  uint64_t aa = a; uint64_t bb = b; \
+  flexfloat_t ff_a, ff_b, ff_res; \
+  flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
+  ff_init_double(&ff_a, *(double *)( &aa ), env); \
+  ff_init_double(&ff_b, *(double *)( &bb ), env); \
+  ff_init_double(&ff_res, 0.0, env);
 
 #define FF_INIT_3(a, b, c, e, m) \
   flexfloat_t ff_a, ff_b, ff_c, ff_res; \
@@ -71,6 +58,15 @@
   flexfloat_set_bits(&ff_a, a); \
   flexfloat_set_bits(&ff_b, b); \
   flexfloat_set_bits(&ff_c, c);
+
+#define FF_INIT_3_double(a, b, c, e, m) \
+  uint64_t aa =a, bb = b, cc = c; \
+  flexfloat_t ff_a, ff_b, ff_c, ff_res; \
+  flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
+  ff_init_double(&ff_a, *(double *)( &aa ), env); \
+  ff_init_double(&ff_b, *(double *)( &bb ), env); \
+  ff_init_double(&ff_c, *(double *)( &cc ), env); \
+  ff_init_double(&ff_res, 0.0, env);
 
 #define FF_EXEC_1(s, name, a, e, m) \
   FF_INIT_(a, e, m) \
@@ -86,6 +82,14 @@
   update_fflags_fenv(s); \
   return flexfloat_get_bits(&ff_res);
 
+#define FF_EXEC_2_double(s, name, a, b, e, m) \
+  FF_INIT_2_double(a, b, e, m) \
+  feclearexcept(FE_ALL_EXCEPT); \
+  name(&ff_res, &ff_a, &ff_b); \
+  update_fflags_fenv(s); \
+  double res_double = ff_get_double(&ff_res); \
+  return (*(uint64_t *)( &res_double ));
+
 #define FF_EXEC_3(s, name, a, b, c, e, m) \
   FF_INIT_3(a, b, c, e, m) \
   feclearexcept(FE_ALL_EXCEPT); \
@@ -93,10 +97,37 @@
   update_fflags_fenv(s); \
   return flexfloat_get_bits(&ff_res);
 
+#define FF_EXEC_3_double(s, name, a, b, c, e, m) \
+  FF_INIT_3_double(a, b, c, e, m) \
+  feclearexcept(FE_ALL_EXCEPT); \
+  name(&ff_res, &ff_a, &ff_b, &ff_c); \
+  update_fflags_fenv(s); \
+  double res_double = ff_get_double(&ff_res); \
+  return (*(uint64_t *)( &res_double ));  
 // FlexFloat decs
 
 uint64_t QEMU_FLATTEN 
 lib_flexfloat_madd_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m);
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_msub_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m);
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_nmsub_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m);
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_nmadd_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m);
+
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_add_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m);
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_sub_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m);
+
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_mul_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m);
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_div_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m);
+
+
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_sqrt_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t m);
 
 
 // Helper stuff

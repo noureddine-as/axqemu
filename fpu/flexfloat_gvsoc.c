@@ -15,13 +15,13 @@
    limitations under the License.
 */
 
-#include "fpu/flexfloat.h"
+#include "flexfloat.h"
 // To avoid manually discerning backend-type for calls from math.h
 #include <tgmath.h>
 
 #if defined(FLEXFLOAT_ROUNDING)|| defined(FLEXFLOAT_FLAGS)
 #include <fenv.h>
-// #pragma STDC FENV_ACCESS ON
+#pragma STDC FENV_ACCESS ON
 #endif
 
 #include "assert.h"
@@ -76,7 +76,7 @@ uint_t flexfloat_pack(flexfloat_desc_t desc, bool sign, int_fast16_t exp, uint_t
 
 uint_t flexfloat_denorm_pack(flexfloat_desc_t desc, bool sign, uint_t frac)
 {
-    // int_fast16_t bias    = flexfloat_bias(desc);
+    int_fast16_t bias    = flexfloat_bias(desc);
     return PACK(sign, 0, frac << (NUM_BITS_FRAC - desc.frac_bits));
 }
 
@@ -135,8 +135,8 @@ bool flexfloat_round_bit(const flexfloat_t *a, int_fast16_t exp)
     {
         int shift = (- exp + 1);
         uint_t denorm = 0;
-        if(shift < NUM_BITS)  // @TODO i added parentheses around |
-            denorm = ((CAST_TO_INT(a->value) & MASK_FRAC) | MASK_FRAC_MSB) >> shift;
+        if(shift < NUM_BITS)
+          denorm = ((CAST_TO_INT(a->value) & MASK_FRAC | MASK_FRAC_MSB)) >> shift;
         return denorm & (UINT_C(0x1) << (NUM_BITS_FRAC - a->desc.frac_bits - 1));
     }
     else
@@ -167,7 +167,6 @@ bool flexfloat_sticky_bit(const flexfloat_t *a, int_fast16_t exp)
 bool flexfloat_nearest_rounding(const flexfloat_t *a, int_fast16_t exp)
 {
     if (flexfloat_round_bit(a, exp))
-    {
         if (flexfloat_sticky_bit(a, exp)) // > ulp/2 away
         {
             return 1;
@@ -178,7 +177,6 @@ bool flexfloat_nearest_rounding(const flexfloat_t *a, int_fast16_t exp)
                 return flexfloat_denorm_frac(a, exp) & 0x1;
             return flexfloat_frac(a) & 0x1;
         }
-    }
     return 0; // < ulp/2 away
 }
 
@@ -312,7 +310,7 @@ void flexfloat_sanitize(flexfloat_t *a)
         exp  = inf_exp;
         // Sanitize to canonical NaN (positive sign, quiet bit set)
         sign = 0;
-        frac = UINT_C(1) << (a->desc.frac_bits-1);
+        frac = UINT_C(1) << a->desc.frac_bits-1;
     }
     else if(exp == INF_EXP) // Inf
     {
@@ -347,6 +345,8 @@ INLINE void ff_init(flexfloat_t *obj, flexfloat_desc_t desc) {
     obj->tracking_arg = 0;
     #endif
     obj->desc = desc;
+    // @TODO
+    // flexfloat_sanitize(obj);
 }
 
 INLINE void ff_init_float(flexfloat_t *obj, float value, flexfloat_desc_t desc) {
@@ -544,11 +544,11 @@ INLINE void ff_min(flexfloat_t *dest, const flexfloat_t *a, const flexfloat_t *b
     dest->value = fmin(a->value,b->value);
     // fmin's zero sign handling is implementation defined! Check for 0 cases and ensure -0 is chosen
     if ((a->value == 0) && (a->value == b->value))
-        CAST_TO_INT(dest->value) = (UINT_C(0x1) << (NUM_BITS-1));
+        CAST_TO_INT(dest->value) = (UINT_C(0x1) << NUM_BITS-1);
     #ifdef FLEXFLOAT_TRACKING
     dest->exact_value = fmin(a->exact_value,b->exact_value);
     if ((a->exact_value == 0) && (a->exact_value == b->exact_value))
-        CAST_TO_INT(dest->exact_value) = (UINT_C(0x1) << (NUM_BITS-1));
+        CAST_TO_INT(dest->exact_value) = (UINT_C(0x1) << NUM_BITS-1);
     if(dest->tracking_fn) (dest->tracking_fn)(dest, dest->tracking_arg);
     #endif
     flexfloat_sanitize(dest);
@@ -734,15 +734,15 @@ CastStats * getCastStats(const flexfloat_desc_t desc1, const flexfloat_desc_t de
     return (CastStats *) result;
 }
 
-INLINE void ff_start_stats(void) {
+INLINE void ff_start_stats() {
     StatsEnabled = 1;
 }
 
-INLINE void ff_stop_stats(void) {
+INLINE void ff_stop_stats() {
     StatsEnabled = 0;
 }
 
-void ff_clear_stats(void) {
+void ff_clear_stats() {
     int i;
     for(i=0; i<FLEXFLOAT_STATS_MAX_TYPES; ++i)
         if(op_stats[i].key != 0) free(op_stats[i].value);
@@ -752,7 +752,7 @@ void ff_clear_stats(void) {
     memset(cast_stats, 0, sizeof(HashSlot) * FLEXFLOAT_STATS_MAX_TYPES*FLEXFLOAT_STATS_MAX_TYPES);
 }
 
-void ff_print_stats(void) {
+void ff_print_stats() {
     int i;
     printf("-- OPERATIONS -- \n");
     for(i=0; i<FLEXFLOAT_STATS_MAX_TYPES; ++i) {
