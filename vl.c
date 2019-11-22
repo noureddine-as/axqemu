@@ -137,8 +137,10 @@ int main(int argc, char **argv)
  */
 // ax_mode_t ax_mode;
 #include "fpu/flexfloat.h"
-extern uint8_t exp_bits;
-extern uint8_t frac_bits;
+extern uint8_t exp_bits_d;
+extern uint8_t frac_bits_d;
+extern uint8_t exp_bits_f;
+extern uint8_t frac_bits_f;
 // extern flexfloat_desc_t vpfpu_config_64;
 
 static const char *data_dir[16];
@@ -2349,14 +2351,24 @@ static void add_device_config(int type, const char *cmdline)
 
 // @AXSPIKE @TODO
 // #if defined(TARGET_RISCV)
-static void handle_arg_expbits(const char *arg)
+static void handle_arg_expbits_d(const char *arg)
 {
-    exp_bits = (uint8_t)atoi(arg);
+    exp_bits_d = (uint8_t)atoi(arg);
 }
 
-static void handle_arg_fracbits(const char *arg)
+static void handle_arg_fracbits_d(const char *arg)
 {
-    frac_bits = (uint8_t)atoi(arg);
+    frac_bits_d = (uint8_t)atoi(arg);
+}
+
+static void handle_arg_expbits_f(const char *arg)
+{
+    exp_bits_d = (uint8_t)atoi(arg);
+}
+
+static void handle_arg_fracbits_f(const char *arg)
+{
+    frac_bits_d = (uint8_t)atoi(arg);
 }
 
 // static void handle_arg_axmode(const char *arg)
@@ -3250,11 +3262,17 @@ int main(int argc, char **argv, char **envp)
                 add_device_config(DEV_GDB, optarg);
                 break;
 // #if defined(TARGET_RISCV)
-            case QEMU_OPTION_expbits:
-                handle_arg_expbits(optarg);
+            case QEMU_OPTION_expbitsd:
+                handle_arg_expbits_d(optarg);
                 break;
-            case QEMU_OPTION_fracbits:
-                handle_arg_fracbits(optarg);
+            case QEMU_OPTION_fracbitsd:
+                handle_arg_fracbits_d(optarg);
+                break;
+            case QEMU_OPTION_expbitsf:
+                handle_arg_expbits_f(optarg);
+                break;
+            case QEMU_OPTION_fracbitsf:
+                handle_arg_fracbits_f(optarg);
                 break;
 // #endif
             case QEMU_OPTION_L:
@@ -3884,7 +3902,7 @@ int main(int argc, char **argv, char **envp)
     }
 
     // @AXSPIKE_TEST Here all the args are supposed to be parsed.
-    // printf("@AXSPIKE_TEST   Expbits = %d    Fracbits = %d", exp_bits, frac_bits);
+    // printf("@AXSPIKE_TEST   Expbits = %d    Fracbits = %d", exp_bits_d, frac_bits_d);
     // exit(-1);
 
     /*

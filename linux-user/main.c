@@ -63,8 +63,8 @@ int have_guest_base;
  */
 // ax_mode_t ax_mode;
 #include "fpu/flexfloat.h"
-extern uint8_t exp_bits;
-extern uint8_t frac_bits;
+extern uint8_t exp_bits_d;
+extern uint8_t frac_bits_d;
 // extern uint8_t shift_bits;
 // uint64_t input_mask;
 // uint64_t output_mask;
@@ -410,16 +410,16 @@ static void handle_arg_abi_call0(const char *arg)
 #endif
 
 #if defined(TARGET_RISCV)
-static void handle_arg_expbits(const char *arg)
+static void handle_arg_expbits_d(const char *arg)
 {
-    exp_bits = (uint8_t)atoi(arg);
-    // shift_bits = 64 - 1 - exp_bits - frac_bits; // update anyway
+    exp_bits_d = (uint8_t)atoi(arg);
+    // shift_bits = 64 - 1 - exp_bits_d - frac_bits_d; // update anyway
 }
 
-static void handle_arg_fracbits(const char *arg)
+static void handle_arg_fracbits_d(const char *arg)
 {
-    frac_bits = (uint8_t)atoi(arg);
-    // shift_bits = 64 - 1 - exp_bits - frac_bits; // update anyway
+    frac_bits_d = (uint8_t)atoi(arg);
+    // shift_bits = 64 - 1 - exp_bits_d - frac_bits_d; // update anyway
 }
 
 // static void handle_arg_axmode(const char *arg)
@@ -487,12 +487,10 @@ static const struct qemu_argument arg_table[] = {
      "",           "assume CALL0 Xtensa ABI"},
 #endif
 #if defined(TARGET_RISCV)
-    {"expbits",          "",         true,  handle_arg_expbits,
-     "<EXP_BITS>",       "The FPU exponent bit-width"},
-    {"fracbits",          "",         true,  handle_arg_fracbits,
-     "<FRAC_BITS>",       "The FPU fraction bit-width"},
-    // {"axmode",          "",         true,  handle_arg_expbits,
-    //  "",       "The FPU exponent bit-width"},
+    {"expbitsd",          "",         true,  handle_arg_expbits_d,
+     "<EXP_BITS_d>",       "The FPU exponent bit-width for the D FPU extension."},
+    {"fracbitsd",          "",         true,  handle_arg_fracbits_d,
+     "<FRAC_BITS_d>",       "The FPU fraction bit-width for the D FPU extension."},
 #endif
     {NULL, NULL, false, NULL, NULL, NULL}
 };
@@ -686,7 +684,7 @@ int main(int argc, char **argv, char **envp)
     optind = parse_args(argc, argv);
 
     // @AXSPIKE_TEST Here all the args are supposed to be parsed.
-    // printf("@AXSPIKE_TEST   Expbits = %d    Fracbits = %d", exp_bits, frac_bits);
+    // printf("@AXSPIKE_TEST   Expbitsd = %d    Fracbitsd = %d", exp_bits_d, frac_bits_d);
     // exit(-1);
 
     if (!trace_init_backends()) {
@@ -880,14 +878,14 @@ int main(int argc, char **argv, char **envp)
     target_cpu_copy_regs(env, regs);
 
     // @AXSPIKE : ensure that exp and frac bit-widths aren't zeroes.
-    if ((!exp_bits) || (!frac_bits))
+    if ((!exp_bits_d) || (!frac_bits_d))
     {
-        fprintf(stderr, "Exp_Bits = %d         Frac_Bits = %d\n", exp_bits, frac_bits);
-        fprintf(stderr, "neither of exp_bits or frac_bits should be equal to zero.");
+        fprintf(stderr, "Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
+        fprintf(stderr, "neither of exp_bits_d or frac_bits_d should be equal to zero.");
         exit(-1);
     }
     else {
-        fprintf(stderr, "AXQEMU: Exp_Bits = %d         Frac_Bits = %d\n", exp_bits, frac_bits);
+        fprintf(stderr, "AXQEMU: Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
         //vpfpu_config_64 = (flexfloat_desc_t){0, 0};
         //vpfpu_config_64 = (flexfloat_desc_t){11, 23};
     }

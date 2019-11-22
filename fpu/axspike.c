@@ -11,8 +11,12 @@
 
 #include <math.h> // SQRT uses the qrt function.
 
-uint8_t exp_bits = 11;
-uint8_t frac_bits = 52;
+uint8_t exp_bits_d = 11;
+uint8_t frac_bits_d = 52;
+
+uint8_t exp_bits_f = 8;
+uint8_t frac_bits_f = 32;
+
 // uint8_t shift_bits = 0;
 // uint64_t input_mask  = 0xFFFFFFFFFFFFFFFF;
 // uint64_t output_mask = 0xFFFFFFFFFFFFFFFF;
@@ -70,12 +74,12 @@ static inline unsigned int setFFRoundingMode(CPURISCVState *cpuenv, unsigned int
 }
 
 // Elementaries
-static inline uint64_t lib_flexfloat_madd(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m) {
+static inline uint64_t lib_flexfloat_madd(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_3_double(cpuenv, ff_fma, a, b, c, e, m)
+  FF_EXEC_3_double(cpuenv, ff_fma, a, b, c, e, m, original_length)
 #elif defined( USE_TRUNCATION_METHOD )
-  FF_EXEC_3_shift(cpuenv, ff_fma, a, b, c, e, m)
+  FF_EXEC_3_shift(cpuenv, ff_fma, a, b, c, e, m, original_length)
 #else
   fprintf(stderr, "Not implemented #else directive %d", __LINE__);
   exit(-1);
@@ -83,10 +87,10 @@ static inline uint64_t lib_flexfloat_madd(CPURISCVState *cpuenv, uint64_t a, uin
 
 }
 
-static inline uint64_t lib_flexfloat_msub(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m) {
+static inline uint64_t lib_flexfloat_msub(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_INIT_3_double(a, b, c, e, m)
+  FF_INIT_3_double(a, b, c, e, m, original_length)
   ff_inverse(&ff_c, &ff_c);
   feclearexcept(FE_ALL_EXCEPT);
   ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
@@ -95,7 +99,7 @@ static inline uint64_t lib_flexfloat_msub(CPURISCVState *cpuenv, uint64_t a, uin
   return (*(uint64_t *)( &res_double )); 
 
 #elif defined( USE_TRUNCATION_METHOD )
-  FF_INIT_3_shift(a, b, c, e, m)
+  FF_INIT_3_shift(a, b, c, e, m, original_length)
   ff_inverse(&ff_c, &ff_c);
   feclearexcept(FE_ALL_EXCEPT);
   ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
@@ -110,10 +114,10 @@ static inline uint64_t lib_flexfloat_msub(CPURISCVState *cpuenv, uint64_t a, uin
 
 }
 
-static inline uint64_t lib_flexfloat_nmsub(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m) {
+static inline uint64_t lib_flexfloat_nmsub(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_INIT_3_double(a, b, c, e, m)
+  FF_INIT_3_double(a, b, c, e, m, original_length)
   ff_inverse(&ff_a, &ff_a);
   feclearexcept(FE_ALL_EXCEPT);
   ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
@@ -125,7 +129,7 @@ static inline uint64_t lib_flexfloat_nmsub(CPURISCVState *cpuenv, uint64_t a, ui
   return (*(uint64_t *)( &res_double )); 
 
 #elif defined( USE_TRUNCATION_METHOD )
-  FF_INIT_3_shift(a, b, c, e, m)
+  FF_INIT_3_shift(a, b, c, e, m, original_length)
   ff_inverse(&ff_a, &ff_a);
   feclearexcept(FE_ALL_EXCEPT);
   ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
@@ -139,10 +143,10 @@ static inline uint64_t lib_flexfloat_nmsub(CPURISCVState *cpuenv, uint64_t a, ui
 
 }
 
-static inline uint64_t lib_flexfloat_nmadd(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m) {
+static inline uint64_t lib_flexfloat_nmadd(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_INIT_3_double(a, b, c, e, m)
+  FF_INIT_3_double(a, b, c, e, m, original_length)
   feclearexcept(FE_ALL_EXCEPT);
   ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
   update_fflags_fenv(cpuenv);
@@ -154,7 +158,7 @@ static inline uint64_t lib_flexfloat_nmadd(CPURISCVState *cpuenv, uint64_t a, ui
   return (*(uint64_t *)( &res_double ));
 
 #elif defined( USE_TRUNCATION_METHOD )
-  FF_INIT_3_shift(a, b, c, e, m)
+  FF_INIT_3_shift(a, b, c, e, m, original_length)
   feclearexcept(FE_ALL_EXCEPT);
   ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
   update_fflags_fenv(cpuenv);
@@ -168,12 +172,12 @@ static inline uint64_t lib_flexfloat_nmadd(CPURISCVState *cpuenv, uint64_t a, ui
 
 }
 
-static inline uint64_t lib_flexfloat_add(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m) {
+static inline uint64_t lib_flexfloat_add(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_2_double(cpuenv, ff_add, a, b, e, m)
+  FF_EXEC_2_double(cpuenv, ff_add, a, b, e, m, original_length)
 #elif defined( USE_TRUNCATION_METHOD )
-  FF_EXEC_2_shift(cpuenv, ff_add, a, b, e, m)
+  FF_EXEC_2_shift(cpuenv, ff_add, a, b, e, m, original_length)
 #else
   fprintf(stderr, "Not implemented #else directive %d", __LINE__);
   exit(-1);
@@ -181,12 +185,12 @@ static inline uint64_t lib_flexfloat_add(CPURISCVState *cpuenv, uint64_t a, uint
 
 }
 
-static inline uint64_t lib_flexfloat_sub(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m) {
+static inline uint64_t lib_flexfloat_sub(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_2_double(cpuenv, ff_sub, a, b, e, m)
+  FF_EXEC_2_double(cpuenv, ff_sub, a, b, e, m, original_length)
 #elif defined( USE_TRUNCATION_METHOD )
-  FF_EXEC_2_shift(cpuenv, ff_sub, a, b, e, m)
+  FF_EXEC_2_shift(cpuenv, ff_sub, a, b, e, m, original_length)
 #else
   fprintf(stderr, "Not implemented #else directive %d", __LINE__);
   exit(-1);
@@ -194,12 +198,12 @@ static inline uint64_t lib_flexfloat_sub(CPURISCVState *cpuenv, uint64_t a, uint
 
 }
 
-static inline uint64_t lib_flexfloat_mul(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m) {
+static inline uint64_t lib_flexfloat_mul(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_2_double(cpuenv, ff_mul, a, b, e, m)
+  FF_EXEC_2_double(cpuenv, ff_mul, a, b, e, m, original_length)
 #elif defined( USE_TRUNCATION_METHOD )
-  FF_EXEC_2_shift(cpuenv, ff_mul, a, b, e, m)
+  FF_EXEC_2_shift(cpuenv, ff_mul, a, b, e, m, original_length)
 #else
   fprintf(stderr, "Not implemented #else directive %d", __LINE__);
   exit(-1);
@@ -207,11 +211,11 @@ static inline uint64_t lib_flexfloat_mul(CPURISCVState *cpuenv, uint64_t a, uint
 
 }
 
-static inline uint64_t lib_flexfloat_div(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m) {
+static inline uint64_t lib_flexfloat_div(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_2_double(cpuenv, ff_div, a, b, e, m)
+  FF_EXEC_2_double(cpuenv, ff_div, a, b, e, m, original_length)
 #elif defined( USE_TRUNCATION_METHOD )
-  FF_EXEC_2_shift(cpuenv, ff_div, a, b, e, m)
+  FF_EXEC_2_shift(cpuenv, ff_div, a, b, e, m, original_length)
 #else
   fprintf(stderr, "Not implemented #else directive %d", __LINE__);
   exit(-1);
@@ -221,47 +225,137 @@ static inline uint64_t lib_flexfloat_div(CPURISCVState *cpuenv, uint64_t a, uint
 // Wrapers for fpu-helper.c
 
 uint64_t QEMU_FLATTEN 
-lib_flexfloat_madd_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
+lib_flexfloat_madd_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
   int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-  uint64_t result = lib_flexfloat_madd(cpuenv, a, b, c, e, m);
+  uint64_t result = lib_flexfloat_madd(cpuenv, a, b, c, e, m, original_length);
   restoreFFRoundingMode(old);
   return result;
 }
 
 uint64_t QEMU_FLATTEN 
-lib_flexfloat_msub_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
+lib_flexfloat_msub_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
   int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-  uint64_t result = lib_flexfloat_msub(cpuenv, a, b, c, e, m);
+  uint64_t result = lib_flexfloat_msub(cpuenv, a, b, c, e, m, original_length);
   restoreFFRoundingMode(old);
   return result;
 }
 
 uint64_t QEMU_FLATTEN 
-lib_flexfloat_nmsub_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
+lib_flexfloat_nmsub_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
   int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-  uint64_t result = lib_flexfloat_nmsub(cpuenv, a, b, c, e, m);
+  uint64_t result = lib_flexfloat_nmsub(cpuenv, a, b, c, e, m, original_length);
   restoreFFRoundingMode(old);
   return result;
 }
 
 uint64_t QEMU_FLATTEN 
-lib_flexfloat_nmadd_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
+lib_flexfloat_nmadd_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
   int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-  uint64_t result = lib_flexfloat_nmadd(cpuenv, a, b, c, e, m);
+  uint64_t result = lib_flexfloat_nmadd(cpuenv, a, b, c, e, m, original_length);
   restoreFFRoundingMode(old);
   return result;
 }
+
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_add_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
+  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
+  uint64_t result = lib_flexfloat_add(cpuenv, a, b, e, m, original_length);
+  restoreFFRoundingMode(old);
+  return result;
+}
+
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_sub_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
+  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
+  uint64_t result = lib_flexfloat_sub(cpuenv, a, b, e, m, original_length);
+  restoreFFRoundingMode(old);
+  return result;
+}
+
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_mul_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
+  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
+  uint64_t result = lib_flexfloat_mul(cpuenv, a, b, e, m, original_length);
+  restoreFFRoundingMode(old);
+  return result;
+}
+
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_div_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
+  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
+  uint64_t result = lib_flexfloat_div(cpuenv, a, b, e, m, original_length);
+  restoreFFRoundingMode(old);
+  return result;
+}
+
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_sqrt_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
+  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
+  /* // Original one, using get bits to get the results in LSB 1+e+m bits
+  FF_INIT_1(a, e, m, original_length) */
+
+#if defined( USE_CONV_COMP_CONV_METHOD )
+  FF_INIT_1_double(a, e, m, original_length)
+
+  feclearexcept(FE_ALL_EXCEPT);
+  ff_init_double(&ff_res, sqrt(ff_get_double(&ff_a)), env);
+  update_fflags_fenv(cpuenv);
+  restoreFFRoundingMode(old);
+
+  /* // original one using get_bits
+  return flexfloat_get_bits(&ff_res); */
+  double res_double = ff_get_double(&ff_res);
+  return (*(uint64_t *)( &res_double ));
+
+#elif defined( USE_TRUNCATION_METHOD )
+
+  FF_INIT_1_shift(a, e, m, original_length)
+
+  feclearexcept(FE_ALL_EXCEPT);
+  ff_init_double(&ff_res, sqrt(ff_get_double(&ff_a)), env);
+  update_fflags_fenv(cpuenv);
+  restoreFFRoundingMode(old);
+
+  return (flexfloat_get_bits(&ff_res) << shift_bits);
+
+#else
+  fprintf(stderr, "Not implemented #else directive %d", __LINE__);
+  exit(-1);
+#endif
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // uint64_t QEMU_FLATTEN 
-// lib_flexfloat_add_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
+// lib_flexfloat_add_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
 //   int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
 
 //   uint64_t aa =a, bb=b;
 //   printf("[ qemu:  a  ]   = 0x%lX\n", *(uint64_t *)( &aa ));
 //   printf("[ qemu:  b  ]   = 0x%lX\n", *(uint64_t *)( &bb ));
 
-//   // uint64_t result = lib_flexfloat_add(cpuenv, a, b, e, m);
-//   // FF_INIT_2(a, b, e, m) 
+//   // uint64_t result = lib_flexfloat_add(cpuenv, a, b, e, m, original_length);
+//   // FF_INIT_2(a, b, e, m, original_length) 
 
 //   flexfloat_t ff_a, ff_b, ff_res; 
 //   flexfloat_desc_t env = (flexfloat_desc_t) {11,51}; 
@@ -298,9 +392,9 @@ lib_flexfloat_nmadd_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpu
 // }
 
 // uint64_t QEMU_FLATTEN 
-// lib_flexfloat_add_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
+// lib_flexfloat_add_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
 //   int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-//   double result; // = lib_flexfloat_add(cpuenv, a, b, e, m);
+//   double result; // = lib_flexfloat_add(cpuenv, a, b, e, m, original_length);
 
 //   // Init
 //   uint64_t aa = a; uint64_t bb = b; 
@@ -327,74 +421,3 @@ lib_flexfloat_nmadd_round(uint64_t a, uint64_t b, uint64_t c, CPURISCVState *cpu
 //   restoreFFRoundingMode(old);
 //   return (*(uint64_t *)( &result ));
 // }
-
-uint64_t QEMU_FLATTEN 
-lib_flexfloat_add_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
-  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-  uint64_t result = lib_flexfloat_add(cpuenv, a, b, e, m);
-  restoreFFRoundingMode(old);
-  return result;
-}
-
-uint64_t QEMU_FLATTEN 
-lib_flexfloat_sub_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
-  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-  uint64_t result = lib_flexfloat_sub(cpuenv, a, b, e, m);
-  restoreFFRoundingMode(old);
-  return result;
-}
-
-uint64_t QEMU_FLATTEN 
-lib_flexfloat_mul_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
-  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-  uint64_t result = lib_flexfloat_mul(cpuenv, a, b, e, m);
-  restoreFFRoundingMode(old);
-  return result;
-}
-
-uint64_t QEMU_FLATTEN 
-lib_flexfloat_div_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
-  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-  uint64_t result = lib_flexfloat_div(cpuenv, a, b, e, m);
-  restoreFFRoundingMode(old);
-  return result;
-}
-
-uint64_t QEMU_FLATTEN 
-lib_flexfloat_sqrt_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t m) {
-  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
-  /* // Original one, using get bits to get the results in LSB 1+e+m bits
-  FF_INIT_1(a, e, m) */
-
-#if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_INIT_1_double(a, e, m)
-
-  feclearexcept(FE_ALL_EXCEPT);
-  ff_init_double(&ff_res, sqrt(ff_get_double(&ff_a)), env);
-  update_fflags_fenv(cpuenv);
-  restoreFFRoundingMode(old);
-
-  /* // original one using get_bits
-  return flexfloat_get_bits(&ff_res); */
-  double res_double = ff_get_double(&ff_res);
-  return (*(uint64_t *)( &res_double ));
-
-#elif defined( USE_TRUNCATION_METHOD )
-
-  FF_INIT_1_shift(a, e, m)
-
-  feclearexcept(FE_ALL_EXCEPT);
-  ff_init_double(&ff_res, sqrt(ff_get_double(&ff_a)), env);
-  update_fflags_fenv(cpuenv);
-  restoreFFRoundingMode(old);
-
-  return (flexfloat_get_bits(&ff_res) << shift_bits);
-  
-#else
-  fprintf(stderr, "Not implemented #else directive %d", __LINE__);
-  exit(-1);
-#endif
-
-
-
-}

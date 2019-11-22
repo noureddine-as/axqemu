@@ -3605,19 +3605,35 @@ within gdb and establish the connection via a pipe:
 @end example
 ETEXI
 
-DEF("expbits", HAS_ARG, QEMU_OPTION_expbits, \
-    "-expbits expbitwidth     Set exponent bitwidth of the FPU to val\n", QEMU_ARCH_RISCV)
+DEF("expbitsd", HAS_ARG, QEMU_OPTION_expbitsd, \
+    "-expbitsd expbitwidth     Set exponent bitwidth of the FPU to val\n", QEMU_ARCH_RISCV)
 STEXI
-@item -expbits @var{expbitwidth}
-@findex -expbits
+@item -expbitsd @var{expbitwidth}
+@findex -expbitsd
 Set the exponent bitwidth to @var{expbitwidth}.
 ETEXI
 
-DEF("fracbits", HAS_ARG, QEMU_OPTION_fracbits, \
-    "--fracbits fracbitwidth     Set fraction bitwidth of the FPU to val\n", QEMU_ARCH_RISCV)
+DEF("fracbitsd", HAS_ARG, QEMU_OPTION_fracbitsd, \
+    "--fracbitsd fracbitwidth     Set fraction bitwidth of the FPU to val\n", QEMU_ARCH_RISCV)
 STEXI
-@item -fracbits @var{fracbitwidth}
-@findex -fracbits
+@item -fracbitsd @var{fracbitwidth}
+@findex -fracbitsd
+Set the exponent bitwidth to @var{fracbitwidth}.
+ETEXI
+
+DEF("expbitsf", HAS_ARG, QEMU_OPTION_expbitsf, \
+    "-expbitsf expbitwidth     Set exponent bitwidth of the FPU to val\n", QEMU_ARCH_RISCV)
+STEXI
+@item -expbitsf @var{expbitwidth}
+@findex -expbitsf
+Set the exponent bitwidth to @var{expbitwidth}.
+ETEXI
+
+DEF("fracbitsf", HAS_ARG, QEMU_OPTION_fracbitsf, \
+    "--fracbitsf fracbitwidth     Set fraction bitwidth of the FPU to val\n", QEMU_ARCH_RISCV)
+STEXI
+@item -fracbitsf @var{fracbitwidth}
+@findex -fracbitsf
 Set the exponent bitwidth to @var{fracbitwidth}.
 ETEXI
 
