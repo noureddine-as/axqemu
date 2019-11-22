@@ -65,6 +65,9 @@ int have_guest_base;
 #include "fpu/flexfloat.h"
 extern uint8_t exp_bits;
 extern uint8_t frac_bits;
+// extern uint8_t shift_bits;
+// uint64_t input_mask;
+// uint64_t output_mask;
 // extern flexfloat_desc_t vpfpu_config_64;
 
 /*
@@ -410,11 +413,13 @@ static void handle_arg_abi_call0(const char *arg)
 static void handle_arg_expbits(const char *arg)
 {
     exp_bits = (uint8_t)atoi(arg);
+    // shift_bits = 64 - 1 - exp_bits - frac_bits; // update anyway
 }
 
 static void handle_arg_fracbits(const char *arg)
 {
     frac_bits = (uint8_t)atoi(arg);
+    // shift_bits = 64 - 1 - exp_bits - frac_bits; // update anyway
 }
 
 // static void handle_arg_axmode(const char *arg)

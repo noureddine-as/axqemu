@@ -32,6 +32,7 @@
 
 extern uint8_t exp_bits;
 extern uint8_t frac_bits;
+extern uint8_t shift_bits;
 
 target_ulong riscv_cpu_get_fflags(CPURISCVState *env)
 {

@@ -31,6 +31,16 @@
   ff_init_double(&ff_a, *(double *)( &aa ), env); \
   ff_init_double(&ff_res, 0.0, env);
 
+#define FF_INIT_1_shift(a, e, m) \
+  uint64_t aa = a; \
+  uint8_t  shift_bits = 64 - 1 - e - m; \
+  aa = (aa >> shift_bits); \
+  flexfloat_t ff_a, ff_res; \
+  flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
+  ff_init(&ff_a, env); \
+  ff_init(&ff_res, env); \
+  flexfloat_set_bits(&ff_a, aa);
+
 #define FF_INIT_2(a, b, e, m) \
   flexfloat_t ff_a, ff_b, ff_res; \
   flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
@@ -47,6 +57,19 @@
   ff_init_double(&ff_a, *(double *)( &aa ), env); \
   ff_init_double(&ff_b, *(double *)( &bb ), env); \
   ff_init_double(&ff_res, 0.0, env);
+
+#define FF_INIT_2_shift(a, b, e, m) \
+  uint64_t aa = a; uint64_t bb = b; \
+  uint8_t  shift_bits = 64 - 1 - e - m; \
+  aa = (aa >> shift_bits); \
+  bb = (bb >> shift_bits); \
+  flexfloat_t ff_a, ff_b, ff_res; \
+  flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
+  ff_init(&ff_a, env); \
+  ff_init(&ff_b, env); \
+  ff_init(&ff_res, env); \
+  flexfloat_set_bits(&ff_a, aa); \
+  flexfloat_set_bits(&ff_b, bb);
 
 #define FF_INIT_3(a, b, c, e, m) \
   flexfloat_t ff_a, ff_b, ff_c, ff_res; \
@@ -67,6 +90,22 @@
   ff_init_double(&ff_b, *(double *)( &bb ), env); \
   ff_init_double(&ff_c, *(double *)( &cc ), env); \
   ff_init_double(&ff_res, 0.0, env);
+
+#define FF_INIT_3_shift(a, b, c, e, m) \
+  uint64_t aa =a, bb = b, cc = c; \
+  uint8_t  shift_bits = 64 - 1 - e - m; \
+  aa = (aa >> shift_bits); \
+  bb = (bb >> shift_bits); \
+  cc = (cc >> shift_bits); \
+  flexfloat_t ff_a, ff_b, ff_c, ff_res; \
+  flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
+  ff_init(&ff_a, env); \
+  ff_init(&ff_b, env); \
+  ff_init(&ff_c, env); \
+  ff_init(&ff_res, env); \
+  flexfloat_set_bits(&ff_a, aa); \
+  flexfloat_set_bits(&ff_b, bb); \
+  flexfloat_set_bits(&ff_c, cc);
 
 #define FF_EXEC_1(s, name, a, e, m) \
   FF_INIT_(a, e, m) \
@@ -90,6 +129,13 @@
   double res_double = ff_get_double(&ff_res); \
   return (*(uint64_t *)( &res_double ));
 
+#define FF_EXEC_2_shift(s, name, a, b, e, m) \
+  FF_INIT_2_shift(a, b, e, m) \
+  feclearexcept(FE_ALL_EXCEPT); \
+  name(&ff_res, &ff_a, &ff_b); \
+  update_fflags_fenv(s); \
+  return (flexfloat_get_bits(&ff_res) << shift_bits); /* [1|   e  |  m  |  ... zeroes ...] */
+
 #define FF_EXEC_3(s, name, a, b, c, e, m) \
   FF_INIT_3(a, b, c, e, m) \
   feclearexcept(FE_ALL_EXCEPT); \
@@ -110,7 +156,7 @@
   feclearexcept(FE_ALL_EXCEPT); \
   name(&ff_res, &ff_a, &ff_b, &ff_c); \
   update_fflags_fenv(s); \
-  return flexfloat_get_bits(&ff_res);
+  return (flexfloat_get_bits(&ff_res) << shift_bits); /* [1|   e  |  m  |  ... zeroes ...] */
 
 // FlexFloat decs
 
