@@ -104,6 +104,14 @@
   update_fflags_fenv(s); \
   double res_double = ff_get_double(&ff_res); \
   return (*(uint64_t *)( &res_double ));  
+
+#define FF_EXEC_3_shift(s, name, a, b, c, e, m) \
+  FF_INIT_3_shift(a, b, c, e, m) \
+  feclearexcept(FE_ALL_EXCEPT); \
+  name(&ff_res, &ff_a, &ff_b, &ff_c); \
+  update_fflags_fenv(s); \
+  return flexfloat_get_bits(&ff_res);
+
 // FlexFloat decs
 
 uint64_t QEMU_FLATTEN 
