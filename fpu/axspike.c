@@ -15,7 +15,7 @@ uint8_t exp_bits_d = 11;
 uint8_t frac_bits_d = 52;
 
 uint8_t exp_bits_f = 8;
-uint8_t frac_bits_f = 32;
+uint8_t frac_bits_f = 23;
 
 // uint8_t shift_bits = 0;
 // uint64_t input_mask  = 0xFFFFFFFFFFFFFFFF;
