@@ -2363,12 +2363,12 @@ static void handle_arg_fracbits_d(const char *arg)
 
 static void handle_arg_expbits_f(const char *arg)
 {
-    exp_bits_d = (uint8_t)atoi(arg);
+    exp_bits_f = (uint8_t)atoi(arg);
 }
 
 static void handle_arg_fracbits_f(const char *arg)
 {
-    frac_bits_d = (uint8_t)atoi(arg);
+    frac_bits_f = (uint8_t)atoi(arg);
 }
 
 // static void handle_arg_axmode(const char *arg)
@@ -3904,6 +3904,18 @@ int main(int argc, char **argv, char **envp)
     // @AXSPIKE_TEST Here all the args are supposed to be parsed.
     // printf("@AXSPIKE_TEST   Expbits = %d    Fracbits = %d", exp_bits_d, frac_bits_d);
     // exit(-1);
+    // @AXSPIKE : ensure that exp and frac bit-widths aren't zeroes.
+    if ((!exp_bits_d) || (!frac_bits_d) || (!exp_bits_f) || (!frac_bits_f))
+    {
+        fprintf(stderr, "Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
+        fprintf(stderr, "Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
+        fprintf(stderr, "neither of the FPU parameters should be equal to zero.\n");
+        exit(-1);
+    }
+    else {
+        fprintf(stderr, "AXQEMU[ softmmu mode ]: Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
+        fprintf(stderr, "                        Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
+    }
 
     /*
      * Clear error location left behind by the loop.

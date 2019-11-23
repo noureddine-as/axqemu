@@ -65,6 +65,8 @@ int have_guest_base;
 #include "fpu/flexfloat.h"
 extern uint8_t exp_bits_d;
 extern uint8_t frac_bits_d;
+extern uint8_t exp_bits_f;
+extern uint8_t frac_bits_f;
 // extern uint8_t shift_bits;
 // uint64_t input_mask;
 // uint64_t output_mask;
@@ -422,11 +424,21 @@ static void handle_arg_fracbits_d(const char *arg)
     // shift_bits = 64 - 1 - exp_bits_d - frac_bits_d; // update anyway
 }
 
+static void handle_arg_expbits_f(const char *arg)
+{
+    exp_bits_f = (uint8_t)atoi(arg);
+    // shift_bits = 64 - 1 - exp_bits_f - frac_bits_f; // update anyway
+}
+
+static void handle_arg_fracbits_f(const char *arg)
+{
+    frac_bits_f = (uint8_t)atoi(arg);
+    // shift_bits = 64 - 1 - exp_bits_f - frac_bits_f; // update anyway
+}
 // static void handle_arg_axmode(const char *arg)
 // {
 //     axmode = (uint8_t)atoi(arg);
 // }
-
 #endif
 
 struct qemu_argument {
@@ -488,9 +500,13 @@ static const struct qemu_argument arg_table[] = {
 #endif
 #if defined(TARGET_RISCV)
     {"expbitsd",          "",         true,  handle_arg_expbits_d,
-     "<EXP_BITS_d>",       "The FPU exponent bit-width for the D FPU extension."},
+     "<EXP_BITS_d>",       "The FPU exponent bit-width for the D extension. Default is 11"},
     {"fracbitsd",          "",         true,  handle_arg_fracbits_d,
-     "<FRAC_BITS_d>",       "The FPU fraction bit-width for the D FPU extension."},
+     "<FRAC_BITS_d>",       "The FPU fraction bit-width for the D extension. Default is 52"},
+    {"expbitsf",          "",         true,  handle_arg_expbits_f,
+     "<EXP_BITS_f>",       "The FPU exponent bit-width for the F extension. Default is 8"},
+    {"fracbitsf",          "",         true,  handle_arg_fracbits_f,
+     "<FRAC_BITS_f>",       "The FPU fraction bit-width for the F extension. Default is 23"},
 #endif
     {NULL, NULL, false, NULL, NULL, NULL}
 };
@@ -878,16 +894,16 @@ int main(int argc, char **argv, char **envp)
     target_cpu_copy_regs(env, regs);
 
     // @AXSPIKE : ensure that exp and frac bit-widths aren't zeroes.
-    if ((!exp_bits_d) || (!frac_bits_d))
+    if ((!exp_bits_d) || (!frac_bits_d) || (!exp_bits_f) || (!frac_bits_f))
     {
         fprintf(stderr, "Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
-        fprintf(stderr, "neither of exp_bits_d or frac_bits_d should be equal to zero.");
+        fprintf(stderr, "Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
+        fprintf(stderr, "neither of the FPU parameters should be equal to zero.\n");
         exit(-1);
     }
     else {
-        fprintf(stderr, "AXQEMU: Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
-        //vpfpu_config_64 = (flexfloat_desc_t){0, 0};
-        //vpfpu_config_64 = (flexfloat_desc_t){11, 23};
+        fprintf(stderr, "AXQEMU[ linux user mode ]: Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
+        fprintf(stderr, "                           Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
     }
 
     if (gdbstub_port) {
