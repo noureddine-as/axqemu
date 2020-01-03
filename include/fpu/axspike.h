@@ -179,7 +179,12 @@ lib_flexfloat_mul_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e
 uint64_t QEMU_FLATTEN 
 lib_flexfloat_div_round(uint64_t a, uint64_t b, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length);
 
+// SQRT for D extension
 uint64_t QEMU_FLATTEN 
 lib_flexfloat_sqrt_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length);
+
+// SQRT for F extension
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_sqrtf_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length);
 
 #endif // AXSPIKE_H

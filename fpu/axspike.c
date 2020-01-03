@@ -325,18 +325,43 @@ lib_flexfloat_sqrt_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t m
 
 }
 
+// Same as lib_flexfloat_sqrt_round, but the precise value is computed using SQRTF(float) instead of SQRT(double)
+uint64_t QEMU_FLATTEN 
+lib_flexfloat_sqrtf_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t m, uint8_t original_length) {
+  int old = setFFRoundingMode(cpuenv, cpuenv->fp_status.float_rounding_mode);
+  /* // Original one, using get bits to get the results in LSB 1+e+m bits
+  FF_INIT_1(a, e, m, original_length) */
 
+#if defined( USE_CONV_COMP_CONV_METHOD )
+  FF_INIT_1_double(a, e, m, original_length)
 
+  feclearexcept(FE_ALL_EXCEPT);
+  ff_init_double(&ff_res, sqrtf((float)ff_get_double(&ff_a)), env);
+  update_fflags_fenv(cpuenv);
+  restoreFFRoundingMode(old);
 
+  /* // original one using get_bits
+  return flexfloat_get_bits(&ff_res); */
+  double res_double = ff_get_double(&ff_res);
+  return (*(uint64_t *)( &res_double ));
 
+#elif defined( USE_TRUNCATION_METHOD )
 
+  FF_INIT_1_shift(a, e, m, original_length)
 
+  feclearexcept(FE_ALL_EXCEPT);
+  ff_init_double(&ff_res, sqrtf((float)ff_get_double(&ff_a)), env);
+  update_fflags_fenv(cpuenv);
+  restoreFFRoundingMode(old);
 
+  return (flexfloat_get_bits(&ff_res) << shift_bits);
 
+#else
+  fprintf(stderr, "Not implemented #else directive %d", __LINE__);
+  exit(-1);
+#endif
 
-
-
-
+}
 
 
 
