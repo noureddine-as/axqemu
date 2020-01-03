@@ -21,8 +21,8 @@ uint8_t frac_bits_f = 23;
 // uint64_t input_mask  = 0xFFFFFFFFFFFFFFFF;
 // uint64_t output_mask = 0xFFFFFFFFFFFFFFFF;
 
-// #define USE_CONV_COMP_CONV_METHOD 1
-#define USE_TRUNCATION_METHOD     1
+#define USE_CONV_COMP_CONV_METHOD 1
+// #define USE_TRUNCATION_METHOD     1
 
 // updates the fflags from fenv exceptions
 static inline void update_fflags_fenv(CPURISCVState *cpuenv)

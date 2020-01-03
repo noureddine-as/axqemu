@@ -24,9 +24,8 @@
 #include "fpu/softfloat.h"
 #include "fpu/axspike.h"
 
-#define USE_FLEXFLOAT 1
-// #define USE_GVSOC_DEF 1
-
+// #define USE_FLEXFLOAT 1
+#define USE_GVSOC_DEF 1
 
 extern uint8_t exp_bits_d;
 extern uint8_t frac_bits_d;
@@ -488,7 +487,7 @@ uint64_t helper_fcvt_d_s(CPURISCVState *env, uint64_t rs1)
     return float32_to_float64(rs1, &env->fp_status);
 }
 
-uint64_t helper_ fsqrt_d(CPURISCVState *env, uint64_t frs1)
+uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1)
 {
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = frs1;  
