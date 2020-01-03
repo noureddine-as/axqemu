@@ -150,7 +150,7 @@ uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     float64_t frs_out;
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
     return frs_out.v;
-    fprintf(stderr, "FMSUB_D has been invoked, but it hasn't been tested during development.");
+    // fprintf(stderr, "FMSUB_D has been invoked, but it hasn't been tested during development.");
     // exit(-1);
 #elif defined( USE_GVSOC_DEF )
     return lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
@@ -190,7 +190,7 @@ uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     float64_t frs_out;
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
     return frs_out.v;
-    fprintf(stderr, "FNMSUB_D has been invoked, but it hasn't been tested during development.");
+    // fprintf(stderr, "FNMSUB_D has been invoked, but it hasn't been tested during development.");
     // exit(-1);
 #elif defined( USE_GVSOC_DEF )
     return lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
@@ -227,7 +227,7 @@ uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     float64_t frs_out;
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
     return frs_out.v;
-    fprintf(stderr, "FNMADD_D has been invoked, but it hasn't been tested during development.");
+    // fprintf(stderr, "FNMADD_D has been invoked, but it hasn't been tested during development.");
     // exit(-1);
 #elif defined( USE_GVSOC_DEF )
     return lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
