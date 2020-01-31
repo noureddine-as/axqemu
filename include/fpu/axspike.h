@@ -58,6 +58,16 @@
   ff_init_double(&ff_b, *(double *)( &bb ), env); \
   ff_init_double(&ff_res, 0.0, env);
 
+#define FF_INIT_2_float(a, b, e, m, original_length) \
+  uint64_t aa = a; uint64_t bb = b; \
+  aa = aa & 0xFFFFFFFF; /* Floats are stored in the 32 bit LSBs */\
+  bb = bb & 0xFFFFFFFF; /* Floats are stored in the 32 bit LSBs */\
+  flexfloat_t ff_a, ff_b, ff_res; \
+  flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
+  ff_init_float(&ff_a, *(float *)( &aa ), env); \
+  ff_init_float(&ff_b, *(float *)( &bb ), env); \
+  ff_init_float(&ff_res, 0.0f, env);
+
 #define FF_INIT_2_shift(a, b, e, m, original_length) \
   uint64_t aa = a; uint64_t bb = b; \
   uint8_t  shift_bits = original_length - 1 - e - m; \
@@ -128,6 +138,14 @@
   update_fflags_fenv(s); \
   double res_double = ff_get_double(&ff_res); \
   return (*(uint64_t *)( &res_double ));
+
+#define FF_EXEC_2_float(s, name, a, b, e, m, original_length) \
+  FF_INIT_2_float(a, b, e, m, original_length) \
+  feclearexcept(FE_ALL_EXCEPT); \
+  name(&ff_res, &ff_a, &ff_b); \
+  update_fflags_fenv(s); \
+  float res_float = ff_get_float(&ff_res); \
+  return (*(uint32_t *)( &res_float ));
 
 #define FF_EXEC_2_shift(s, name, a, b, e, m, original_length) \
   FF_INIT_2_shift(a, b, e, m, original_length) \

@@ -175,7 +175,14 @@ static inline uint64_t lib_flexfloat_nmadd(CPURISCVState *cpuenv, uint64_t a, ui
 static inline uint64_t lib_flexfloat_add(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_2_double(cpuenv, ff_add, a, b, e, m, original_length)
+  if(original_length == 64)
+  {
+    FF_EXEC_2_double(cpuenv, ff_add, a, b, e, m, original_length)
+  }
+  else if( original_length == 32 )
+  {
+    FF_EXEC_2_float(cpuenv, ff_add, a, b, e, m, original_length)
+  }
 #elif defined( USE_TRUNCATION_METHOD )
   FF_EXEC_2_shift(cpuenv, ff_add, a, b, e, m, original_length)
 #else
