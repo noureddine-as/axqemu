@@ -234,7 +234,14 @@ static inline uint64_t lib_flexfloat_mul(CPURISCVState *cpuenv, uint64_t a, uint
 
 static inline uint64_t lib_flexfloat_div(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_2_double(cpuenv, ff_div, a, b, e, m) // @ TODO, original_length)
+  if( likely(original_length == 64) )
+  {
+    FF_EXEC_2_double(cpuenv, ff_div, a, b, e, m)
+  }
+  else // (original_length == 32)
+  {
+    FF_EXEC_2_float(cpuenv, ff_div, a, b, e, m)
+  }
 #elif defined( USE_TRUNCATION_METHOD )
   FF_EXEC_2_shift(cpuenv, ff_div, a, b, e, m, original_length)
 #else
