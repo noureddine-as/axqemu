@@ -316,7 +316,7 @@ lib_flexfloat_sqrt_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t m
   FF_INIT_1(a, e, m, original_length) */
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_INIT_1_double(a, e, m, original_length)
+  FF_INIT_1_double(a, e, m)
 
   feclearexcept(FE_ALL_EXCEPT);
   ff_init_double(&ff_res, sqrt(ff_get_double(&ff_a)), env);
@@ -355,28 +355,17 @@ lib_flexfloat_sqrtf_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t 
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
 
-  // if( original_length == 32 )
-  // {
-  //   // @TODO
-  //   FF_INIT_1_float(a, e, m, original_length)
-  // }
-  // else // (original_length == 32)
-  // {
-  //   FF_INIT_1_double(a, e, m, original_length)
-  // }
-
-    FF_INIT_1_double(a, e, m, original_length)
-
+    FF_INIT_1_float(a, e, m)
 
   feclearexcept(FE_ALL_EXCEPT);
-  ff_init_double(&ff_res, sqrtf((float)ff_get_double(&ff_a)), env);
+  ff_init_float(&ff_res, sqrtf((float)ff_get_float(&ff_a)), env);
   update_fflags_fenv(cpuenv);
   restoreFFRoundingMode(old);
 
   /* // original one using get_bits
   return flexfloat_get_bits(&ff_res); */
-  double res_double = ff_get_double(&ff_res);
-  return (*(uint64_t *)( &res_double ));
+  float res_float = ff_get_float(&ff_res);
+  return (*(uint32_t *)( &res_float ));
 
 #elif defined( USE_TRUNCATION_METHOD )
 

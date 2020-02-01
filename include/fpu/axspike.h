@@ -24,12 +24,19 @@
   ff_init(&ff_res, env); \
   flexfloat_set_bits(&ff_a, a);
 
-#define FF_INIT_1_double(a, e, m, original_length) \
+#define FF_INIT_1_double(a, e, m) \
   uint64_t aa = a; \
   flexfloat_t ff_a, ff_res; \
   flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
   ff_init_double(&ff_a, *(double *)( &aa ), env); \
   ff_init_double(&ff_res, 0.0, env);
+
+#define FF_INIT_1_float(a, e, m) \
+  uint32_t aa = a & 0xFFFFFFFF; \
+  flexfloat_t ff_a, ff_res; \
+  flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
+  ff_init_float(&ff_a, *(float *)( &aa ), env); \
+  ff_init_float(&ff_res, 0.0f, env);
 
 #define FF_INIT_1_shift(a, e, m, original_length) \
   uint64_t aa = a; \
