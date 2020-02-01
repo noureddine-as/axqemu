@@ -175,13 +175,13 @@ static inline uint64_t lib_flexfloat_nmadd(CPURISCVState *cpuenv, uint64_t a, ui
 static inline uint64_t lib_flexfloat_add(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  if(original_length == 64)
+  if( likely(original_length == 64) )
   {
-    FF_EXEC_2_double(cpuenv, ff_add, a, b, e, m, original_length)
+    FF_EXEC_2_double(cpuenv, ff_add, a, b, e, m)
   }
-  else if( original_length == 32 )
+  else // (original_length == 32)
   {
-    FF_EXEC_2_float(cpuenv, ff_add, a, b, e, m, original_length)
+    FF_EXEC_2_float(cpuenv, ff_add, a, b, e, m)
   }
 #elif defined( USE_TRUNCATION_METHOD )
   FF_EXEC_2_shift(cpuenv, ff_add, a, b, e, m, original_length)
@@ -195,7 +195,14 @@ static inline uint64_t lib_flexfloat_add(CPURISCVState *cpuenv, uint64_t a, uint
 static inline uint64_t lib_flexfloat_sub(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_2_double(cpuenv, ff_sub, a, b, e, m, original_length)
+  if( likely(original_length == 64) )
+  {
+    FF_EXEC_2_double(cpuenv, ff_sub, a, b, e, m)
+  }
+  else // (original_length == 32)
+  {
+    FF_EXEC_2_float(cpuenv, ff_sub, a, b, e, m)
+  }
 #elif defined( USE_TRUNCATION_METHOD )
   FF_EXEC_2_shift(cpuenv, ff_sub, a, b, e, m, original_length)
 #else
@@ -208,7 +215,14 @@ static inline uint64_t lib_flexfloat_sub(CPURISCVState *cpuenv, uint64_t a, uint
 static inline uint64_t lib_flexfloat_mul(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_2_double(cpuenv, ff_mul, a, b, e, m, original_length)
+  if( likely(original_length == 64) )
+  {
+    FF_EXEC_2_double(cpuenv, ff_mul, a, b, e, m)
+  }
+  else // (original_length == 32)
+  {
+    FF_EXEC_2_float(cpuenv, ff_mul, a, b, e, m)
+  }
 #elif defined( USE_TRUNCATION_METHOD )
   FF_EXEC_2_shift(cpuenv, ff_mul, a, b, e, m, original_length)
 #else
@@ -220,7 +234,7 @@ static inline uint64_t lib_flexfloat_mul(CPURISCVState *cpuenv, uint64_t a, uint
 
 static inline uint64_t lib_flexfloat_div(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint8_t e, uint8_t m, uint8_t original_length) {
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_2_double(cpuenv, ff_div, a, b, e, m, original_length)
+  FF_EXEC_2_double(cpuenv, ff_div, a, b, e, m) // @ TODO, original_length)
 #elif defined( USE_TRUNCATION_METHOD )
   FF_EXEC_2_shift(cpuenv, ff_div, a, b, e, m, original_length)
 #else
@@ -340,7 +354,19 @@ lib_flexfloat_sqrtf_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t 
   FF_INIT_1(a, e, m, original_length) */
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_INIT_1_double(a, e, m, original_length)
+
+  // if( original_length == 32 )
+  // {
+  //   // @TODO
+  //   FF_INIT_1_float(a, e, m, original_length)
+  // }
+  // else // (original_length == 32)
+  // {
+  //   FF_INIT_1_double(a, e, m, original_length)
+  // }
+
+    FF_INIT_1_double(a, e, m, original_length)
+
 
   feclearexcept(FE_ALL_EXCEPT);
   ff_init_double(&ff_res, sqrtf((float)ff_get_double(&ff_a)), env);

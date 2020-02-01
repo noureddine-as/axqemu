@@ -24,8 +24,8 @@
 #include "fpu/softfloat.h"
 #include "fpu/axspike.h"
 
-#define USE_FLEXFLOAT 1
-// #define USE_GVSOC_DEF 1
+// #define USE_FLEXFLOAT 1
+#define USE_GVSOC_DEF 1
 
 extern uint8_t exp_bits_d;
 extern uint8_t frac_bits_d;
