@@ -77,7 +77,14 @@ static inline unsigned int setFFRoundingMode(CPURISCVState *cpuenv, unsigned int
 static inline uint64_t lib_flexfloat_madd(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_EXEC_3_double(cpuenv, ff_fma, a, b, c, e, m, original_length)
+  if( likely(original_length == 64) )
+  {
+    FF_EXEC_3_double(cpuenv, ff_fma, a, b, c, e, m)
+  }
+  else // (original_length == 32)
+  {
+    FF_EXEC_3_float(cpuenv, ff_fma, a, b, c, e, m)
+  }
 #elif defined( USE_TRUNCATION_METHOD )
   FF_EXEC_3_shift(cpuenv, ff_fma, a, b, c, e, m, original_length)
 #else
@@ -90,13 +97,26 @@ static inline uint64_t lib_flexfloat_madd(CPURISCVState *cpuenv, uint64_t a, uin
 static inline uint64_t lib_flexfloat_msub(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_INIT_3_double(a, b, c, e, m, original_length)
-  ff_inverse(&ff_c, &ff_c);
-  feclearexcept(FE_ALL_EXCEPT);
-  ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
-  update_fflags_fenv(cpuenv);
-  double res_double = ff_get_double(&ff_res);
-  return (*(uint64_t *)( &res_double )); 
+  if( likely(original_length == 64) )
+  {
+    FF_INIT_3_double(a, b, c, e, m)
+    ff_inverse(&ff_c, &ff_c);
+    feclearexcept(FE_ALL_EXCEPT);
+    ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
+    update_fflags_fenv(cpuenv);
+    double res_double = ff_get_double(&ff_res);
+    return (*(uint64_t *)( &res_double )); 
+  }
+  else // (original_length == 32)
+  {
+    FF_INIT_3_float(a, b, c, e, m)
+    ff_inverse(&ff_c, &ff_c);
+    feclearexcept(FE_ALL_EXCEPT);
+    ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
+    update_fflags_fenv(cpuenv);
+    float res_float = ff_get_float(&ff_res);
+    return (*(uint32_t *)( &res_float ));
+  }
 
 #elif defined( USE_TRUNCATION_METHOD )
   FF_INIT_3_shift(a, b, c, e, m, original_length)
@@ -117,16 +137,26 @@ static inline uint64_t lib_flexfloat_msub(CPURISCVState *cpuenv, uint64_t a, uin
 static inline uint64_t lib_flexfloat_nmsub(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_INIT_3_double(a, b, c, e, m, original_length)
-  ff_inverse(&ff_a, &ff_a);
-  feclearexcept(FE_ALL_EXCEPT);
-  ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
-  update_fflags_fenv(cpuenv);
-
-  /* // original one using get_bits
-  return flexfloat_get_bits(&ff_res); */
-  double res_double = ff_get_double(&ff_res);
-  return (*(uint64_t *)( &res_double )); 
+  if( likely(original_length == 64) )
+  {
+    FF_INIT_3_double(a, b, c, e, m)
+    ff_inverse(&ff_a, &ff_a);
+    feclearexcept(FE_ALL_EXCEPT);
+    ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
+    update_fflags_fenv(cpuenv);
+    double res_double = ff_get_double(&ff_res);
+    return (*(uint64_t *)( &res_double )); 
+  }
+  else // (original_length == 32)
+  {
+    FF_INIT_3_float(a, b, c, e, m)
+    ff_inverse(&ff_a, &ff_a);
+    feclearexcept(FE_ALL_EXCEPT);
+    ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
+    update_fflags_fenv(cpuenv);
+    float res_float = ff_get_float(&ff_res);
+    return (*(uint32_t *)( &res_float )); 
+  }
 
 #elif defined( USE_TRUNCATION_METHOD )
   FF_INIT_3_shift(a, b, c, e, m, original_length)
@@ -146,16 +176,26 @@ static inline uint64_t lib_flexfloat_nmsub(CPURISCVState *cpuenv, uint64_t a, ui
 static inline uint64_t lib_flexfloat_nmadd(CPURISCVState *cpuenv, uint64_t a, uint64_t b, uint64_t c, uint8_t e, uint8_t m, uint8_t original_length) {
 
 #if defined( USE_CONV_COMP_CONV_METHOD )
-  FF_INIT_3_double(a, b, c, e, m, original_length)
-  feclearexcept(FE_ALL_EXCEPT);
-  ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
-  update_fflags_fenv(cpuenv);
-  ff_inverse(&ff_res, &ff_res);
-
-  /* // original one using get_bits
-  return flexfloat_get_bits(&ff_res); */
-  double res_double = ff_get_double(&ff_res);
-  return (*(uint64_t *)( &res_double ));
+  if( likely(original_length == 64) )
+  {
+    FF_INIT_3_double(a, b, c, e, m)
+    feclearexcept(FE_ALL_EXCEPT);
+    ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
+    update_fflags_fenv(cpuenv);
+    ff_inverse(&ff_res, &ff_res);
+    double res_double = ff_get_double(&ff_res);
+    return (*(uint64_t *)( &res_double ));
+  }
+  else // (original_length == 32)
+  {
+    FF_INIT_3_float(a, b, c, e, m)
+    feclearexcept(FE_ALL_EXCEPT);
+    ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
+    update_fflags_fenv(cpuenv);
+    ff_inverse(&ff_res, &ff_res);
+    float res_float = ff_get_float(&ff_res);
+    return (*(uint32_t *)( &res_float ));
+  }
 
 #elif defined( USE_TRUNCATION_METHOD )
   FF_INIT_3_shift(a, b, c, e, m, original_length)

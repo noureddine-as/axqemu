@@ -99,7 +99,7 @@
   flexfloat_set_bits(&ff_b, b); \
   flexfloat_set_bits(&ff_c, c);
 
-#define FF_INIT_3_double(a, b, c, e, m, original_length) \
+#define FF_INIT_3_double(a, b, c, e, m) \
   uint64_t aa =a, bb = b, cc = c; \
   flexfloat_t ff_a, ff_b, ff_c, ff_res; \
   flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
@@ -107,6 +107,15 @@
   ff_init_double(&ff_b, *(double *)( &bb ), env); \
   ff_init_double(&ff_c, *(double *)( &cc ), env); \
   ff_init_double(&ff_res, 0.0, env);
+
+#define FF_INIT_3_float(a, b, c, e, m) \
+  uint32_t aa = a & 0xFFFFFFFF, bb = b& 0xFFFFFFFF, cc = c & 0xFFFFFFFF; \
+  flexfloat_t ff_a, ff_b, ff_c, ff_res; \
+  flexfloat_desc_t env = (flexfloat_desc_t) {e,m}; \
+  ff_init_float(&ff_a, *(float *)( &aa ), env); \
+  ff_init_float(&ff_b, *(float *)( &bb ), env); \
+  ff_init_float(&ff_c, *(float *)( &cc ), env); \
+  ff_init_float(&ff_res, 0.0f, env);
 
 #define FF_INIT_3_shift(a, b, c, e, m, original_length) \
   uint64_t aa =a, bb = b, cc = c; \
@@ -168,13 +177,21 @@
   update_fflags_fenv(s); \
   return flexfloat_get_bits(&ff_res);
 
-#define FF_EXEC_3_double(s, name, a, b, c, e, m, original_length) \
-  FF_INIT_3_double(a, b, c, e, m, original_length) \
+#define FF_EXEC_3_double(s, name, a, b, c, e, m) \
+  FF_INIT_3_double(a, b, c, e, m) \
   feclearexcept(FE_ALL_EXCEPT); \
   name(&ff_res, &ff_a, &ff_b, &ff_c); \
   update_fflags_fenv(s); \
   double res_double = ff_get_double(&ff_res); \
   return (*(uint64_t *)( &res_double ));  
+
+#define FF_EXEC_3_float(s, name, a, b, c, e, m) \
+  FF_INIT_3_float(a, b, c, e, m) \
+  feclearexcept(FE_ALL_EXCEPT); \
+  name(&ff_res, &ff_a, &ff_b, &ff_c); \
+  update_fflags_fenv(s); \
+  float res_float = ff_get_float(&ff_res); \
+  return (*(uint32_t *)( &res_float ));  
 
 #define FF_EXEC_3_shift(s, name, a, b, c, e, m, original_length) \
   FF_INIT_3_shift(a, b, c, e, m, original_length) \
