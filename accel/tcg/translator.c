@@ -119,7 +119,9 @@ void translator_loop(const TranslatorOps *ops, DisasContextBase *db,
     if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)
         && qemu_log_in_addr_range(db->pc_first)) {
         qemu_log_lock();
-        qemu_log("----------------\n");
+        // @AXQEMU disabling this line, in order to be able
+        // to print opcodes correctly
+        // qemu_log("----------------\n");
         ops->disas_log(db, cpu);
         qemu_log("\n");
         qemu_log_unlock();

@@ -26,9 +26,20 @@
 
 // #define USE_FLEXFLOAT 1
 #define USE_GVSOC_DEF 1
-#define LOG_TEST_VECTOR_3    fprintf(stderr, " %lX %lX %lX %lX %X\n", frs1, frs2, frs3, final_result, env->fp_status.float_exception_flags)
-#define LOG_TEST_VECTOR_2    fprintf(stderr, " %lX %lX 0 %lX %X\n", frs1, frs2, final_result, env->fp_status.float_exception_flags)
-#define LOG_TEST_VECTOR_1    fprintf(stderr, " %lX 0 0 %lX %X\n", frs1, final_result, env->fp_status.float_exception_flags)
+#define LOG_TEST_VECTOR_3(name)    fprintf(stderr, "%s %X %lX %lX %lX %lX %X\n", name , \
+                                                                                 (uint8_t)env->fp_status.float_rounding_mode, \
+                                                                                 frs1, frs2, frs3, final_result, \
+                                                                                 (uint8_t)env->fp_status.float_exception_flags)
+
+#define LOG_TEST_VECTOR_2(name)    fprintf(stderr, "%s %X %lX %lX 0 %lX %X\n", name , \
+                                                                                 (uint8_t)env->fp_status.float_rounding_mode, \
+                                                                                 frs1, frs2, final_result, \
+                                                                                 (uint8_t)env->fp_status.float_exception_flags)
+
+#define LOG_TEST_VECTOR_1(name)    fprintf(stderr, "%s %X %lX 0 0 %lX %X\n", name , \
+                                                                                 (uint8_t)env->fp_status.float_rounding_mode, \
+                                                                                 frs1, final_result, \
+                                                                                 (uint8_t)env->fp_status.float_exception_flags)
 
 extern uint8_t exp_bits_d;
 extern uint8_t frac_bits_d;
@@ -101,7 +112,7 @@ uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 #else
     final_result = float32_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_3;
+    LOG_TEST_VECTOR_3("FMADD_S");
     return final_result;
 }
 
@@ -121,7 +132,7 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 #else
     final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_3;
+    LOG_TEST_VECTOR_3("FMADD_D");
     return final_result;
 }
 
@@ -135,7 +146,7 @@ uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                             &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_3;
+    LOG_TEST_VECTOR_3("FMSUB_S");
     return final_result;
 }
 
@@ -156,7 +167,7 @@ uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                           &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_3;
+    LOG_TEST_VECTOR_3("FMSUB_D");
     return final_result;
 }
 
@@ -170,7 +181,7 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_3;
+    LOG_TEST_VECTOR_3("FNMSUB_S");
     return final_result;
 }
 
@@ -194,7 +205,7 @@ uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_3;
+    LOG_TEST_VECTOR_3("FNMSUB_D");
     return final_result;
 }
 
@@ -208,7 +219,7 @@ uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_3;
+    LOG_TEST_VECTOR_3("FNMADD_S");
     return final_result;
 }
 
@@ -229,7 +240,7 @@ uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_3;
+    LOG_TEST_VECTOR_3("FNMADD_D");
     return final_result;
 }
 
@@ -241,7 +252,7 @@ uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float32_add(frs1, frs2, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_2;
+    LOG_TEST_VECTOR_2("FADD_S");
     return final_result;
 }
 
@@ -253,7 +264,7 @@ uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float32_sub(frs1, frs2, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_2;
+    LOG_TEST_VECTOR_2("FSUB_S");
     return final_result;
 }
 
@@ -265,7 +276,7 @@ uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float32_mul(frs1, frs2, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_2;
+    LOG_TEST_VECTOR_2("FMUL_S");
     return final_result;
 }
 
@@ -277,7 +288,7 @@ uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float32_div(frs1, frs2, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_2;
+    LOG_TEST_VECTOR_2("FDIV_S");
     return final_result;
 }
 
@@ -299,7 +310,7 @@ uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1)
 #else
     final_result = float32_sqrt(frs1, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_1;
+    LOG_TEST_VECTOR_1("FSQRT_S");
     return final_result;
 }
 
@@ -395,7 +406,7 @@ uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float64_add(frs1, frs2, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_2;
+    LOG_TEST_VECTOR_2("FADD_D");
     return final_result;
 }
 
@@ -413,7 +424,7 @@ uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float64_sub(frs1, frs2, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_2;
+    LOG_TEST_VECTOR_2("FSUB_D");
     return final_result;
 }
 
@@ -431,7 +442,7 @@ uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float64_mul(frs1, frs2, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_2;
+    LOG_TEST_VECTOR_2("FMUL_D");
     return final_result;
 }
 
@@ -449,7 +460,7 @@ uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float64_div(frs1, frs2, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_2;
+    LOG_TEST_VECTOR_2("FDIV_D");
     return final_result;
 }
 
@@ -486,7 +497,7 @@ uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1)
 #else
     final_result = float64_sqrt(frs1, &env->fp_status);
 #endif
-    LOG_TEST_VECTOR_1;
+    LOG_TEST_VECTOR_1("FSQRT_D");
     return final_result;
 }
 
