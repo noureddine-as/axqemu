@@ -25,7 +25,10 @@
 #include "fpu/axspike.h"
 
 // #define USE_FLEXFLOAT 1
-#define USE_GVSOC_DEF 1
+#define USE_GVSOC_DEF           1
+#define ENABLE_TEST_VECTOR      1
+
+#if ( ENABLE_TEST_VECTOR )
 #define LOG_TEST_VECTOR_3(name)    fprintf(stderr, "%s %X %lX %lX %lX %lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  frs1, frs2, frs3, final_result, \
@@ -40,7 +43,11 @@
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  frs1, final_result, \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
-
+#else
+    #define LOG_TEST_VECTOR_3(name)    {} 
+    #define LOG_TEST_VECTOR_2(name)    {}
+    #define LOG_TEST_VECTOR_1(name)    {}
+#endif
 extern uint8_t exp_bits_d;
 extern uint8_t frac_bits_d;
 extern uint8_t exp_bits_f;
