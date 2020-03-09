@@ -26,6 +26,9 @@
 
 // #define USE_FLEXFLOAT 1
 #define USE_GVSOC_DEF 1
+#define LOG_TEST_VECTOR_3    fprintf(stderr, " %lX %lX %lX %lX %X\n", frs1, frs2, frs3, final_result, env->fp_status.float_exception_flags)
+#define LOG_TEST_VECTOR_2    fprintf(stderr, " %lX %lX 0 %lX %X\n", frs1, frs2, final_result, env->fp_status.float_exception_flags)
+#define LOG_TEST_VECTOR_1    fprintf(stderr, " %lX 0 0 %lX %X\n", frs1, final_result, env->fp_status.float_exception_flags)
 
 extern uint8_t exp_bits_d;
 extern uint8_t frac_bits_d;
@@ -92,88 +95,83 @@ void helper_set_rounding_mode(CPURISCVState *env, uint32_t rm)
 uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                         uint64_t frs3)
 {
-
+    uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
-    return lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
 #else
-    return float32_muladd(frs1, frs2, frs3, 0, &env->fp_status);
+    final_result = float32_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
-
+    LOG_TEST_VECTOR_3;
+    return final_result;
 }
 
 uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                         uint64_t frs3)
 {
+    uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = frs1;  
     float64_t frs2_in; frs2_in.v = frs2;
     float64_t frs3_in; frs3_in.v = frs3;
     float64_t frs_out;
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
-    return frs_out.v;
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    return lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
-    return float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
+    final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
+    LOG_TEST_VECTOR_3;
+    return final_result;
 }
 
 uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                         uint64_t frs3)
 {
-
+    uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
-    return lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
 #else
-    return float32_muladd(frs1, frs2, frs3, float_muladd_negate_c,
+    final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                             &env->fp_status);
 #endif
-    
+    LOG_TEST_VECTOR_3;
+    return final_result;
 }
 
 uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                         uint64_t frs3)
 {
+    uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = frs1;  
     float64_t frs2_in; frs2_in.v = frs2;
     float64_t frs3_in; frs3_in.v = frs3; frs3_in.v = frs3_in.v ^ ((uint64_t)1 << 63);
     float64_t frs_out;
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
-    return frs_out.v;
-    // fprintf(stderr, "FMSUB_D has been invoked, but it hasn't been tested during development.");
-    // exit(-1);
+    final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    return lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
-    return float64_muladd(frs1, frs2, frs3, float_muladd_negate_c,
+    final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                           &env->fp_status);
 #endif
+    LOG_TEST_VECTOR_3;
+    return final_result;
 }
 
 uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                          uint64_t frs3)
 {
-
+    uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
-    return lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
 #else
-    return float32_muladd(frs1, frs2, frs3, float_muladd_negate_product,
+    final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
 #endif
-
+    LOG_TEST_VECTOR_3;
+    return final_result;
 }
 
 #define F32_SIGN ((uint32_t)1 << 31)
@@ -182,112 +180,105 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                          uint64_t frs3)
 {
+    uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = (uint64_t)(frs1 ^ F64_SIGN);
     float64_t frs2_in; frs2_in.v = frs2;
     float64_t frs3_in; frs3_in.v = frs3;
     float64_t frs_out;
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
-    return frs_out.v;
-    // fprintf(stderr, "FNMSUB_D has been invoked, but it hasn't been tested during development.");
-    // exit(-1);
+    final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    return lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
-    return float64_muladd(frs1, frs2, frs3, float_muladd_negate_product,
+    final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
 #endif
+    LOG_TEST_VECTOR_3;
+    return final_result;
 }
 
 uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                          uint64_t frs3)
 {
-
+    uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
-    return lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
 #else
-    return float32_muladd(frs1, frs2, frs3, float_muladd_negate_c |
+    final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
 #endif
-
+    LOG_TEST_VECTOR_3;
+    return final_result;
 }
 
 uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                          uint64_t frs3)
 {
+    uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = frs1; frs1_in.v = frs1_in.v ^ ((uint64_t)1 << 63);
     float64_t frs2_in; frs2_in.v = frs2;
     float64_t frs3_in; frs3_in.v = frs3; frs3_in.v = frs3_in.v ^ ((uint64_t)1 << 63);
     float64_t frs_out;
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
-    return frs_out.v;
-    // fprintf(stderr, "FNMADD_D has been invoked, but it hasn't been tested during development.");
-    // exit(-1);
+    final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    return lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
-    return float64_muladd(frs1, frs2, frs3, float_muladd_negate_c |
+    final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
 #endif
+    LOG_TEST_VECTOR_3;
+    return final_result;
 }
 
 uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
-
+    uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
-    return lib_flexfloat_add_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
 #else
-    return float32_add(frs1, frs2, &env->fp_status);
+    final_result = float32_add(frs1, frs2, &env->fp_status);
 #endif
-
+    LOG_TEST_VECTOR_2;
+    return final_result;
 }
 
 uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
-
+    uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
-    return lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
 #else
-    return float32_sub(frs1, frs2, &env->fp_status);
+    final_result = float32_sub(frs1, frs2, &env->fp_status);
 #endif
-
+    LOG_TEST_VECTOR_2;
+    return final_result;
 }
 
 uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
-
+    uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
-    return lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
 #else
-    return float32_mul(frs1, frs2, &env->fp_status);
+    final_result = float32_mul(frs1, frs2, &env->fp_status);
 #endif
-
+    LOG_TEST_VECTOR_2;
+    return final_result;
 }
 
 uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
-
+    uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
-    return lib_flexfloat_div_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
 #else
-    return float32_div(frs1, frs2, &env->fp_status);
+    final_result = float32_div(frs1, frs2, &env->fp_status);
 #endif
-
+    LOG_TEST_VECTOR_2;
+    return final_result;
 }
 
 uint64_t helper_fmin_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
@@ -302,15 +293,14 @@ uint64_t helper_fmax_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 
 uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1)
 {
-    
+    uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
-    return lib_flexfloat_sqrtf_round(frs1, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_sqrtf_round(frs1, env, exp_bits_f, frac_bits_f, (uint8_t)32);
 #else
-    return float32_sqrt(frs1, &env->fp_status);
+    final_result = float32_sqrt(frs1, &env->fp_status);
 #endif
-
+    LOG_TEST_VECTOR_1;
+    return final_result;
 }
 
 target_ulong helper_fle_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
@@ -393,78 +383,74 @@ target_ulong helper_fclass_s(uint64_t frs1)
 
 uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
+    uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = frs1;  
     float64_t frs2_in; frs2_in.v = frs2;
     float64_t frs_out;
     frs_out = f64_add_d_custom(frs1_in, frs2_in, &env->fp_status);
-    return frs_out.v;
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    return lib_flexfloat_add_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
-    return float64_add(frs1, frs2, &env->fp_status);
+    final_result = float64_add(frs1, frs2, &env->fp_status);
 #endif
+    LOG_TEST_VECTOR_2;
+    return final_result;
 }
 
 uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
+    uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = frs1;  
     float64_t frs2_in; frs2_in.v = frs2;
     float64_t frs_out;
     frs_out = f64_sub_d_custom(frs1_in, frs2_in, &env->fp_status);
-    return frs_out.v;
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    return lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
-    return float64_sub(frs1, frs2, &env->fp_status);
+    final_result = float64_sub(frs1, frs2, &env->fp_status);
 #endif
+    LOG_TEST_VECTOR_2;
+    return final_result;
 }
 
 uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
+    uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = frs1;  
     float64_t frs2_in; frs2_in.v = frs2;
     float64_t frs_out;
     frs_out = f64_mul_d_custom(frs1_in, frs2_in, &env->fp_status);
-    return frs_out.v;
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    return lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
-    return float64_mul(frs1, frs2, &env->fp_status);
+    final_result = float64_mul(frs1, frs2, &env->fp_status);
 #endif
+    LOG_TEST_VECTOR_2;
+    return final_result;
 }
 
 uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 {
+    uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = frs1;  
     float64_t frs2_in; frs2_in.v = frs2;
     float64_t frs_out;
     frs_out = f64_div_d_custom(frs1_in, frs2_in, &env->fp_status);
-    return frs_out.v;
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    return lib_flexfloat_div_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
-    return float64_div(frs1, frs2, &env->fp_status);
+    final_result = float64_div(frs1, frs2, &env->fp_status);
 #endif
+    LOG_TEST_VECTOR_2;
+    return final_result;
 }
 
 uint64_t helper_fmin_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
@@ -489,20 +475,19 @@ uint64_t helper_fcvt_d_s(CPURISCVState *env, uint64_t rs1)
 
 uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1)
 {
+    uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
     float64_t frs1_in; frs1_in.v = frs1;  
     float64_t frs_out;
     frs_out = f64_sqrt_d_custom(frs1_in, &env->fp_status);
-    return frs_out.v;
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    return lib_flexfloat_sqrt_round(frs1, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-    // fprintf(stderr, "FPU insn not implented yet.");
-    // exit(-1);
+    final_result = lib_flexfloat_sqrt_round(frs1, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
-    return float64_sqrt(frs1, &env->fp_status);
+    final_result = float64_sqrt(frs1, &env->fp_status);
 #endif
+    LOG_TEST_VECTOR_1;
+    return final_result;
 }
 
 target_ulong helper_fle_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)

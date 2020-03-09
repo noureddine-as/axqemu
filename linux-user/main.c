@@ -902,8 +902,8 @@ int main(int argc, char **argv, char **envp)
         exit(-1);
     }
     else {
-        fprintf(stderr, "AXQEMU[ linux user mode ]: Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
-        fprintf(stderr, "                           Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
+        fprintf(stderr, "# AXQEMU[ linux user mode ]: Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
+        fprintf(stderr, "#                           Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
     }
 
     if (gdbstub_port) {
