@@ -18,6 +18,7 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 static bool trans_fld(DisasContext *ctx, arg_fld *a)
 {
     TCGv t0 = tcg_temp_new();
@@ -55,6 +56,8 @@ static bool trans_fmadd_d(DisasContext *ctx, arg_fmadd_d *a)
     gen_set_rm(ctx, a->rm);
     gen_helper_fmadd_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1],
                        cpu_fpr[a->rs2], cpu_fpr[a->rs3]);
+    // @AXQEMU added for test vector logging
+    LOG_TEST_VECTOR;
     mark_fs_dirty(ctx);
     return true;
 }
@@ -66,6 +69,8 @@ static bool trans_fmsub_d(DisasContext *ctx, arg_fmsub_d *a)
     gen_set_rm(ctx, a->rm);
     gen_helper_fmsub_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1],
                        cpu_fpr[a->rs2], cpu_fpr[a->rs3]);
+    // @AXQEMU added for test vector logging
+    LOG_TEST_VECTOR;
     mark_fs_dirty(ctx);
     return true;
 }
@@ -77,6 +82,8 @@ static bool trans_fnmsub_d(DisasContext *ctx, arg_fnmsub_d *a)
     gen_set_rm(ctx, a->rm);
     gen_helper_fnmsub_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1],
                         cpu_fpr[a->rs2], cpu_fpr[a->rs3]);
+    // @AXQEMU added for test vector logging
+    LOG_TEST_VECTOR;
     mark_fs_dirty(ctx);
     return true;
 }
@@ -88,6 +95,8 @@ static bool trans_fnmadd_d(DisasContext *ctx, arg_fnmadd_d *a)
     gen_set_rm(ctx, a->rm);
     gen_helper_fnmadd_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1],
                         cpu_fpr[a->rs2], cpu_fpr[a->rs3]);
+    // @AXQEMU added for test vector logging
+    LOG_TEST_VECTOR;
     mark_fs_dirty(ctx);
     return true;
 }
@@ -100,7 +109,8 @@ static bool trans_fadd_d(DisasContext *ctx, arg_fadd_d *a)
     gen_set_rm(ctx, a->rm);
     gen_helper_fadd_d(cpu_fpr[a->rd], cpu_env,
                       cpu_fpr[a->rs1], cpu_fpr[a->rs2]);
-
+    // @AXQEMU added for test vector logging
+    LOG_TEST_VECTOR;
     mark_fs_dirty(ctx);
     return true;
 }
@@ -113,7 +123,8 @@ static bool trans_fsub_d(DisasContext *ctx, arg_fsub_d *a)
     gen_set_rm(ctx, a->rm);
     gen_helper_fsub_d(cpu_fpr[a->rd], cpu_env,
                       cpu_fpr[a->rs1], cpu_fpr[a->rs2]);
-
+    // @AXQEMU added for test vector logging
+    LOG_TEST_VECTOR;
     mark_fs_dirty(ctx);
     return true;
 }
@@ -126,7 +137,8 @@ static bool trans_fmul_d(DisasContext *ctx, arg_fmul_d *a)
     gen_set_rm(ctx, a->rm);
     gen_helper_fmul_d(cpu_fpr[a->rd], cpu_env,
                       cpu_fpr[a->rs1], cpu_fpr[a->rs2]);
-
+    // @AXQEMU added for test vector logging
+    LOG_TEST_VECTOR;
     mark_fs_dirty(ctx);
     return true;
 }
@@ -139,7 +151,8 @@ static bool trans_fdiv_d(DisasContext *ctx, arg_fdiv_d *a)
     gen_set_rm(ctx, a->rm);
     gen_helper_fdiv_d(cpu_fpr[a->rd], cpu_env,
                       cpu_fpr[a->rs1], cpu_fpr[a->rs2]);
-
+    // @AXQEMU added for test vector logging
+    LOG_TEST_VECTOR;
     mark_fs_dirty(ctx);
     return true;
 }
@@ -151,7 +164,8 @@ static bool trans_fsqrt_d(DisasContext *ctx, arg_fsqrt_d *a)
 
     gen_set_rm(ctx, a->rm);
     gen_helper_fsqrt_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1]);
-
+    // @AXQEMU added for test vector logging
+    LOG_TEST_VECTOR;
     mark_fs_dirty(ctx);
     return true;
 }

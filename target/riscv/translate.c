@@ -31,6 +31,8 @@
 
 #include "instmap.h"
 
+#define LOG_TEST_VECTOR                 fprintf(stderr, "%08X", (uint32_t)(ctx->opcode))
+
 /* global register indices */
 static TCGv cpu_gpr[32], cpu_pc;
 static TCGv_i64 cpu_fpr[32]; /* assume F and D extensions */
@@ -811,7 +813,7 @@ static void riscv_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
 static void riscv_tr_disas_log(const DisasContextBase *dcbase, CPUState *cpu)
 {
     qemu_log("IN: %s\n", lookup_symbol(dcbase->pc_first));
-    log_target_disas(cpu, dcbase->pc_first, dcbase->tb->size);
+    log_target_disas(cpu, dcbase->pc_first, dcbase->tb->size);  
 }
 
 static const TranslatorOps riscv_tr_ops = {
