@@ -74,6 +74,21 @@ Programs compiled for the proxy kernel using the NewLib (libgloss) library can s
 
 ## Logging Test Vectors from AXQEMU
 
+To activate instruction testVector dumps (to be used in HW testbenches), activate the `ENABLE_TEST_VECTOR` macro in `fpu_helper.c` then rebuild.
+The dump is output at the STDERR, so you will have to reorient STDERR to an external file of course.
+
+## Variable FPU QEMU development conventions
+
+**@AXSPIKE** or **@AXQEMU** : means that the note is related to AXSPIKE development process
+**@TODO**    : something should be revisited/corrected/enhanced.
+**@AXSPIKE_TEST** : lines inserted to test AXSPIKE-related functionalities.
+
+We defined **USE_AXSPIKE** flag in `softfloat.c` that will choose if we should use **softfloat** or **flexfloat**.
+
+# DELETED LEGACY STUFF
+
+## (OLD + Non functional) Logging Test Vectors from AXQEMU
+
 Test vector logging is done through the STDERR.
 
 ### Logging the OPCODE
@@ -128,14 +143,4 @@ aitsaidn@marseille:~/PhD/playground/ctest/test_vector_generator$ ./compile_linux
 72D7F7CF 4010000000000000 405EDD3C07EE0B0B 402E3EF9DB22D0E5 C07FCF33D6C72192 1
 ```
 
-
-## Variable FPU QEMU development conventions
-
-**@AXSPIKE** or **@AXQEMU** : means that the note is related to AXSPIKE development process
-**@TODO**    : something should be revisited/corrected/enhanced.
-**@AXSPIKE_TEST** : lines inserted to test AXSPIKE-related functionalities.
-
-We defined **USE_AXSPIKE** flag in `softfloat.c` that will choose if we should use **softfloat** or **flexfloat**.
-
- 
 

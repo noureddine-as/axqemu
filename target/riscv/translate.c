@@ -31,8 +31,6 @@
 
 #include "instmap.h"
 
-#define LOG_TEST_VECTOR                 /* fprintf(stderr, "%08X", (uint32_t)(ctx->opcode)) */
-
 /* global register indices */
 static TCGv cpu_gpr[32], cpu_pc;
 static TCGv_i64 cpu_fpr[32]; /* assume F and D extensions */
