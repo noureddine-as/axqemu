@@ -412,7 +412,7 @@ lib_flexfloat_sqrtf_round(uint64_t a, CPURISCVState *cpuenv, uint8_t e, uint8_t 
   /* // original one using get_bits
   return flexfloat_get_bits(&ff_res); */
   float res_float = ff_get_float(&ff_res);
-  return (*(uint32_t *)( &res_float ));
+  return (0xFFFFFFFF00000000 | (*(uint32_t *)( &res_float )));  
 
 #elif defined( USE_TRUNCATION_METHOD )
 

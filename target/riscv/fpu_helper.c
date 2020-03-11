@@ -29,17 +29,17 @@
 #define ENABLE_TEST_VECTOR      1
 
 #if ( ENABLE_TEST_VECTOR )
-#define LOG_TEST_VECTOR_3(name)    fprintf(stderr, "%s %X %lX %lX %lX %lX %X\n", name , \
+#define LOG_TEST_VECTOR_3(name)    fprintf(stderr, "SOFT %s %X %lX %lX %lX %lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  frs1, frs2, frs3, final_result, \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-#define LOG_TEST_VECTOR_2(name)    fprintf(stderr, "%s %X %lX %lX 0 %lX %X\n", name , \
+#define LOG_TEST_VECTOR_2(name)    fprintf(stderr, "SOFT %s %X %lX %lX 0 %lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  frs1, frs2, final_result, \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-#define LOG_TEST_VECTOR_1(name)    fprintf(stderr, "%s %X %lX 0 0 %lX %X\n", name , \
+#define LOG_TEST_VECTOR_1(name)    fprintf(stderr, "SOFT %s %X %lX 0 0 %lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  frs1, final_result, \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
