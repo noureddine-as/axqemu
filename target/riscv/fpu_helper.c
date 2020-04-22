@@ -82,38 +82,25 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
                                             fflush(binary_test_vector_file)
 
-/*
-// #define LOG_BINARY_TEST_VECTOR_3(opcode)    fwrite(&opcode,                                          sizeof(uint32_t), 1, binary_test_vector_file); \
-//                                             fwrite(&frs1,                                            sizeof(uint64_t), 1, binary_test_vector_file); \
-//                                             fwrite(&frs2,                                            sizeof(uint64_t), 1, binary_test_vector_file); \
-//                                             fwrite(&frs3,                                            sizeof(uint64_t), 1, binary_test_vector_file); \
-//                                             fwrite(&final_result,                                    sizeof(uint64_t), 1, binary_test_vector_file); \
-//                                             uint8_t i_status = (uint8_t)env->fp_status.float_exception_flags; \
-//                                             fwrite(&i_status,                                        sizeof(uint8_t) , 1, binary_test_vector_file); \
-//                                             fflush(binary_test_vector_file)
-*/
+#define LOG_BINARY_TEST_VECTOR_2(opcode)    binary_test_vector_t tv_instance = {0}; \
+                                            tv_instance.opp = opcode; \
+                                            tv_instance.rs1 = frs1; \
+                                            tv_instance.rs2 = frs2; \
+                                            tv_instance.rs3 = (uint64_t)0x00; \
+                                            tv_instance.rd = final_result; \
+                                            tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
+                                            fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
+                                            fflush(binary_test_vector_file)
 
-#define LOG_BINARY_TEST_VECTOR_2(opcode)    fprintf(stderr, "%08X %lX %lX %lX %lX %X\n", opcode , \
-                                                                                 frs1, frs2, (uint64_t)0, final_result, \
-                                                                                 (uint8_t)env->fp_status.float_exception_flags)
-
-#define LOG_BINARY_TEST_VECTOR_1(opcode)    fprintf(stderr, "%08X %lX %lX %lX %lX %X\n", opcode , \
-                                                                                 frs1, (uint64_t)0, (uint64_t)0, final_result, \
-                                                                                 (uint8_t)env->fp_status.float_exception_flags)
-
-/*
-// #define LOG_BINARY_TEST_VECTOR_3(opcode)    fprintf(stderr, "%08X %lX %lX %lX %lX %X\n", opcode , \
-//                                                                                  frs1, frs2, frs3, final_result, \
-//                                                                                  (uint8_t)env->fp_status.float_exception_flags)
-
-// #define LOG_BINARY_TEST_VECTOR_2(opcode)    fprintf(stderr, "%08X %lX %lX %lX %lX %X\n", opcode , \
-//                                                                                  frs1, frs2, (uint64_t)0, final_result, \
-//                                                                                  (uint8_t)env->fp_status.float_exception_flags)
-
-// #define LOG_BINARY_TEST_VECTOR_1(opcode)    fprintf(stderr, "%08X %lX %lX %lX %lX %X\n", opcode , \
-//                                                                                  frs1, (uint64_t)0, (uint64_t)0, final_result, \
-//                                                                                  (uint8_t)env->fp_status.float_exception_flags)
-*/
+#define LOG_BINARY_TEST_VECTOR_1(opcode)    binary_test_vector_t tv_instance = {0}; \
+                                            tv_instance.opp = opcode; \
+                                            tv_instance.rs1 = frs1; \
+                                            tv_instance.rs2 = (uint64_t)0x00; \
+                                            tv_instance.rs3 = (uint64_t)0x00; \
+                                            tv_instance.rd = final_result; \
+                                            tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
+                                            fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
+                                            fflush(binary_test_vector_file)
 
 #define LOG_TEXTUAL_TEST_VECTOR_3(name)    {} 
 #define LOG_TEXTUAL_TEST_VECTOR_2(name)    {}
@@ -189,7 +176,7 @@ void helper_set_rounding_mode(CPURISCVState *env, uint32_t rm)
 }
 
 uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
-                        uint64_t frs3)
+                        uint64_t frs3, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
@@ -197,17 +184,13 @@ uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 #else
     final_result = float32_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_3(opcode);
     LOG_TEXTUAL_TEST_VECTOR_3("FMADD_S");
     return final_result;
 }
 
-#if ( ENABLE_BINARY_TEST_VECTOR )
 uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
                         uint64_t frs3, uint32_t opcode)
-#else
-uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
-                        uint64_t frs3)
-#endif
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -222,13 +205,13 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 #else
     final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
-    LOG_TEXTUAL_TEST_VECTOR_3("FMADD_D");
     LOG_BINARY_TEST_VECTOR_3(opcode);
+    LOG_TEXTUAL_TEST_VECTOR_3("FMADD_D");
     return final_result;
 }
 
 uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
-                        uint64_t frs3)
+                        uint64_t frs3, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
@@ -237,12 +220,13 @@ uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                             &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_3(opcode);
     LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_S");
     return final_result;
 }
 
 uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
-                        uint64_t frs3)
+                        uint64_t frs3, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -258,12 +242,13 @@ uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                           &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_3(opcode);
     LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_D");
     return final_result;
 }
 
 uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
-                         uint64_t frs3)
+                         uint64_t frs3, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
@@ -272,6 +257,7 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_3(opcode);
     LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_S");
     return final_result;
 }
@@ -280,7 +266,7 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 #define F64_SIGN ((uint64_t)1 << 63)
 
 uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
-                         uint64_t frs3)
+                         uint64_t frs3, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -296,12 +282,13 @@ uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_3(opcode);
     LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_D");
     return final_result;
 }
 
 uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
-                         uint64_t frs3)
+                         uint64_t frs3, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
@@ -310,12 +297,13 @@ uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_3(opcode);
     LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_S");
     return final_result;
 }
 
 uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
-                         uint64_t frs3)
+                         uint64_t frs3, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -331,11 +319,12 @@ uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_3(opcode);
     LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_D");
     return final_result;
 }
 
-uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
+uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
@@ -343,11 +332,12 @@ uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float32_add(frs1, frs2, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_2(opcode);
     LOG_TEXTUAL_TEST_VECTOR_2("FADD_S");
     return final_result;
 }
 
-uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
+uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
@@ -355,11 +345,12 @@ uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float32_sub(frs1, frs2, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_2(opcode);
     LOG_TEXTUAL_TEST_VECTOR_2("FSUB_S");
     return final_result;
 }
 
-uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
+uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
@@ -367,11 +358,12 @@ uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float32_mul(frs1, frs2, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_2(opcode);
     LOG_TEXTUAL_TEST_VECTOR_2("FMUL_S");
     return final_result;
 }
 
-uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
+uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
@@ -379,6 +371,7 @@ uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float32_div(frs1, frs2, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_2(opcode);
     LOG_TEXTUAL_TEST_VECTOR_2("FDIV_S");
     return final_result;
 }
@@ -393,7 +386,7 @@ uint64_t helper_fmax_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
     return float32_maxnum(frs1, frs2, &env->fp_status);
 }
 
-uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1)
+uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
@@ -401,6 +394,7 @@ uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1)
 #else
     final_result = float32_sqrt(frs1, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_1(opcode);
     LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_S");
     return final_result;
 }
@@ -483,7 +477,7 @@ target_ulong helper_fclass_s(uint64_t frs1)
     }
 }
 
-uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
+uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -497,11 +491,12 @@ uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float64_add(frs1, frs2, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_2(opcode);
     LOG_TEXTUAL_TEST_VECTOR_2("FADD_D");
     return final_result;
 }
 
-uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
+uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -515,11 +510,12 @@ uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float64_sub(frs1, frs2, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_2(opcode);
     LOG_TEXTUAL_TEST_VECTOR_2("FSUB_D");
     return final_result;
 }
 
-uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
+uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -533,11 +529,12 @@ uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float64_mul(frs1, frs2, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_2(opcode);
     LOG_TEXTUAL_TEST_VECTOR_2("FMUL_D");
     return final_result;
 }
 
-uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
+uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -551,6 +548,7 @@ uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2)
 #else
     final_result = float64_div(frs1, frs2, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_2(opcode);
     LOG_TEXTUAL_TEST_VECTOR_2("FDIV_D");
     return final_result;
 }
@@ -575,7 +573,7 @@ uint64_t helper_fcvt_d_s(CPURISCVState *env, uint64_t rs1)
     return float32_to_float64(rs1, &env->fp_status);
 }
 
-uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1)
+uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -588,6 +586,7 @@ uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1)
 #else
     final_result = float64_sqrt(frs1, &env->fp_status);
 #endif
+    LOG_BINARY_TEST_VECTOR_1(opcode);
     LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_D");
     return final_result;
 }

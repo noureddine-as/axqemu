@@ -51,11 +51,7 @@ static bool trans_fsd(DisasContext *ctx, arg_fsd *a)
 
 static bool trans_fmadd_d(DisasContext *ctx, arg_fmadd_d *a)
 {
-    TCGv_i32 opp = tcg_temp_new_i32(); // tcg_temp_new_i32();
-
-    tcg_gen_movi_i32(opp, ctx->opcode);
-    // tcg_gen_add_i32 (opp, opp, ctx->opcode);
-    // opp = (uint32_t *)ctx->opcode;
+    AXQEMU_TEST_VECTOR_PREFIX;
 
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
@@ -64,100 +60,131 @@ static bool trans_fmadd_d(DisasContext *ctx, arg_fmadd_d *a)
                        cpu_fpr[a->rs2], cpu_fpr[a->rs3], opp);
     mark_fs_dirty(ctx);
 
-    tcg_temp_free_i32(opp);
-    // tcg_temp_free(opp);
+    AXQEMU_TEST_VECTOR_SUFFIX;
     return true;
 }
 
 static bool trans_fmsub_d(DisasContext *ctx, arg_fmsub_d *a)
 {
+    AXQEMU_TEST_VECTOR_PREFIX;
+
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
     gen_set_rm(ctx, a->rm);
     gen_helper_fmsub_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1],
-                       cpu_fpr[a->rs2], cpu_fpr[a->rs3]);
+                       cpu_fpr[a->rs2], cpu_fpr[a->rs3], opp);
     mark_fs_dirty(ctx);
+
+    AXQEMU_TEST_VECTOR_SUFFIX;
     return true;
 }
 
 static bool trans_fnmsub_d(DisasContext *ctx, arg_fnmsub_d *a)
 {
+    AXQEMU_TEST_VECTOR_PREFIX;
+    
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
     gen_set_rm(ctx, a->rm);
     gen_helper_fnmsub_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1],
-                        cpu_fpr[a->rs2], cpu_fpr[a->rs3]);
+                        cpu_fpr[a->rs2], cpu_fpr[a->rs3], opp);
     mark_fs_dirty(ctx);
+
+    AXQEMU_TEST_VECTOR_SUFFIX;
     return true;
 }
 
 static bool trans_fnmadd_d(DisasContext *ctx, arg_fnmadd_d *a)
 {
+    AXQEMU_TEST_VECTOR_PREFIX;
+    
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
     gen_set_rm(ctx, a->rm);
     gen_helper_fnmadd_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1],
-                        cpu_fpr[a->rs2], cpu_fpr[a->rs3]);
+                        cpu_fpr[a->rs2], cpu_fpr[a->rs3], opp);
     mark_fs_dirty(ctx);
+
+    AXQEMU_TEST_VECTOR_SUFFIX;
     return true;
 }
 
 static bool trans_fadd_d(DisasContext *ctx, arg_fadd_d *a)
 {
+    AXQEMU_TEST_VECTOR_PREFIX;
+    
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
 
     gen_set_rm(ctx, a->rm);
     gen_helper_fadd_d(cpu_fpr[a->rd], cpu_env,
-                      cpu_fpr[a->rs1], cpu_fpr[a->rs2]);
+                      cpu_fpr[a->rs1], cpu_fpr[a->rs2], opp);
     mark_fs_dirty(ctx);
+
+    AXQEMU_TEST_VECTOR_SUFFIX;
     return true;
 }
 
 static bool trans_fsub_d(DisasContext *ctx, arg_fsub_d *a)
 {
+    AXQEMU_TEST_VECTOR_PREFIX;
+    
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
 
     gen_set_rm(ctx, a->rm);
     gen_helper_fsub_d(cpu_fpr[a->rd], cpu_env,
-                      cpu_fpr[a->rs1], cpu_fpr[a->rs2]);
+                      cpu_fpr[a->rs1], cpu_fpr[a->rs2], opp);
     mark_fs_dirty(ctx);
+
+    AXQEMU_TEST_VECTOR_SUFFIX;
     return true;
 }
 
 static bool trans_fmul_d(DisasContext *ctx, arg_fmul_d *a)
 {
+    AXQEMU_TEST_VECTOR_PREFIX;
+    
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
 
     gen_set_rm(ctx, a->rm);
     gen_helper_fmul_d(cpu_fpr[a->rd], cpu_env,
-                      cpu_fpr[a->rs1], cpu_fpr[a->rs2]);
+                      cpu_fpr[a->rs1], cpu_fpr[a->rs2], opp);
     mark_fs_dirty(ctx);
+    
+    AXQEMU_TEST_VECTOR_SUFFIX;
     return true;
 }
 
 static bool trans_fdiv_d(DisasContext *ctx, arg_fdiv_d *a)
 {
+    AXQEMU_TEST_VECTOR_PREFIX;
+    
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
 
     gen_set_rm(ctx, a->rm);
     gen_helper_fdiv_d(cpu_fpr[a->rd], cpu_env,
-                      cpu_fpr[a->rs1], cpu_fpr[a->rs2]);
+                      cpu_fpr[a->rs1], cpu_fpr[a->rs2], opp);
     mark_fs_dirty(ctx);
+
+    AXQEMU_TEST_VECTOR_SUFFIX;
     return true;
 }
 
 static bool trans_fsqrt_d(DisasContext *ctx, arg_fsqrt_d *a)
 {
+    AXQEMU_TEST_VECTOR_PREFIX;
+    
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
 
     gen_set_rm(ctx, a->rm);
-    gen_helper_fsqrt_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1]);
+    gen_helper_fsqrt_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1], opp);
     mark_fs_dirty(ctx);
+
+    AXQEMU_TEST_VECTOR_SUFFIX;
     return true;
 }
 
