@@ -117,7 +117,7 @@ static inline uint64_t lib_flexfloat_msub(CPURISCVState *cpuenv, uint64_t a, uin
     ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
     update_fflags_fenv(cpuenv);
     float res_float = ff_get_float(&ff_res);
-    return (*(uint32_t *)( &res_float ));
+    return (((uint64_t)(0xFFFFFFFF00000000)) | ((uint64_t)(*(uint32_t *)( &res_float ))));
   }
 
 #elif defined( USE_TRUNCATION_METHOD )
@@ -157,7 +157,7 @@ static inline uint64_t lib_flexfloat_nmsub(CPURISCVState *cpuenv, uint64_t a, ui
     ff_fma(&ff_res, &ff_a, &ff_b, &ff_c);
     update_fflags_fenv(cpuenv);
     float res_float = ff_get_float(&ff_res);
-    return (*(uint32_t *)( &res_float )); 
+    return (((uint64_t)(0xFFFFFFFF00000000)) | ((uint64_t)(*(uint32_t *)( &res_float ))));
   }
 
 #elif defined( USE_TRUNCATION_METHOD )
@@ -196,7 +196,7 @@ static inline uint64_t lib_flexfloat_nmadd(CPURISCVState *cpuenv, uint64_t a, ui
     update_fflags_fenv(cpuenv);
     ff_inverse(&ff_res, &ff_res);
     float res_float = ff_get_float(&ff_res);
-    return (*(uint32_t *)( &res_float ));
+    return (((uint64_t)(0xFFFFFFFF00000000)) | ((uint64_t)(*(uint32_t *)( &res_float ))));
   }
 
 #elif defined( USE_TRUNCATION_METHOD )
