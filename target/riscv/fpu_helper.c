@@ -43,12 +43,12 @@ extern FILE    *binary_test_vector_file;
                                                                                  frs1, frs2, frs3, final_result, \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-#define LOG_TEXTUAL_TEST_VECTOR_2(name)    fprintf(stderr, "%s %X %lX %lX 0 %lX %X\n", name , \
+#define LOG_TEXTUAL_TEST_VECTOR_2(name)    fprintf(stderr, "%s %X %lX %lX FFFFFFFF00000000 %lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  frs1, frs2, final_result, \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-#define LOG_TEXTUAL_TEST_VECTOR_1(name)    fprintf(stderr, "%s %X %lX 0 0 %lX %X\n", name , \
+#define LOG_TEXTUAL_TEST_VECTOR_1(name)    fprintf(stderr, "%s %X %lX FFFFFFFF00000000 FFFFFFFF00000000 %lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  frs1, final_result, \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
@@ -86,7 +86,7 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
                                             tv_instance.opp = opcode; \
                                             tv_instance.rs1 = frs1; \
                                             tv_instance.rs2 = frs2; \
-                                            tv_instance.rs3 = (uint64_t)0x00; \
+                                            tv_instance.rs3 = (uint64_t)0xFFFFFFFF00000000; \
                                             tv_instance.rd = final_result; \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
@@ -95,8 +95,8 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
 #define LOG_BINARY_TEST_VECTOR_1(opcode)    binary_test_vector_t tv_instance = {0}; \
                                             tv_instance.opp = opcode; \
                                             tv_instance.rs1 = frs1; \
-                                            tv_instance.rs2 = (uint64_t)0x00; \
-                                            tv_instance.rs3 = (uint64_t)0x00; \
+                                            tv_instance.rs2 = (uint64_t)0xFFFFFFFF00000000; \
+                                            tv_instance.rs3 = (uint64_t)0xFFFFFFFF00000000; \
                                             tv_instance.rd = final_result; \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
