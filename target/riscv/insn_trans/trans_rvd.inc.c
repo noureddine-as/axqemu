@@ -51,12 +51,21 @@ static bool trans_fsd(DisasContext *ctx, arg_fsd *a)
 
 static bool trans_fmadd_d(DisasContext *ctx, arg_fmadd_d *a)
 {
+    TCGv_i32 opp = tcg_temp_new_i32(); // tcg_temp_new_i32();
+
+    tcg_gen_movi_i32(opp, ctx->opcode);
+    // tcg_gen_add_i32 (opp, opp, ctx->opcode);
+    // opp = (uint32_t *)ctx->opcode;
+
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
     gen_set_rm(ctx, a->rm);
     gen_helper_fmadd_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1],
-                       cpu_fpr[a->rs2], cpu_fpr[a->rs3]);
+                       cpu_fpr[a->rs2], cpu_fpr[a->rs3], opp);
     mark_fs_dirty(ctx);
+
+    tcg_temp_free_i32(opp);
+    // tcg_temp_free(opp);
     return true;
 }
 
