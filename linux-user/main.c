@@ -67,6 +67,7 @@ extern uint8_t exp_bits_d;
 extern uint8_t frac_bits_d;
 extern uint8_t exp_bits_f;
 extern uint8_t frac_bits_f;
+extern FILE    *binary_test_vector_file;
 // extern uint8_t shift_bits;
 // uint64_t input_mask;
 // uint64_t output_mask;
@@ -904,6 +905,9 @@ int main(int argc, char **argv, char **envp)
     else {
         fprintf(stderr, "# AXQEMU[ linux user mode ]: Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
         fprintf(stderr, "#                           Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
+        if ((binary_test_vector_file = fopen("binary_test_vector.bin", "wb")) != NULL) {
+            fprintf(stderr, "Dumping binary test vectors in file < binary_test_vector.bin > \n");
+        }
     }
 
     if (gdbstub_port) {

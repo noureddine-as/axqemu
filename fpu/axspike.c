@@ -17,6 +17,8 @@ uint8_t frac_bits_d = 52;
 uint8_t exp_bits_f = 8;
 uint8_t frac_bits_f = 23;
 
+FILE    *binary_test_vector_file = NULL;
+
 // uint8_t shift_bits = 0;
 // uint64_t input_mask  = 0xFFFFFFFFFFFFFFFF;
 // uint64_t output_mask = 0xFFFFFFFFFFFFFFFF;

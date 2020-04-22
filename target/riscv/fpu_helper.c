@@ -24,6 +24,13 @@
 #include "fpu/softfloat.h"
 #include "fpu/axspike.h"
 
+// Simulation parameters
+extern uint8_t exp_bits_d;
+extern uint8_t frac_bits_d;
+extern uint8_t exp_bits_f;
+extern uint8_t frac_bits_f;
+extern FILE    *binary_test_vector_file;
+
 // #define USE_FLEXFLOAT 1
 #define USE_GVSOC_DEF               1
 
@@ -51,16 +58,40 @@
 #define LOG_BINARY_TEST_VECTOR_1(opcode)    {}
 
 #elif ( ENABLE_BINARY_TEST_VECTOR ) // In this case, Binary is defined, and textual is not
-// We don't need the RND_mode, it's incoded in the opcode
-#define LOG_BINARY_TEST_VECTOR_3(opcode)    fwrite(opcode,          sizeof(uint32_t), 1, stderr); \
-                                            fwrite(frs1,            sizeof(uint64_t), 1, stderr); \
-                                            fwrite(frs2,            sizeof(uint64_t), 1, stderr); \
-                                            fwrite(frs3,            sizeof(uint64_t), 1, stderr); \
-                                            fwrite(final_result,    sizeof(uint64_t), 1, stderr); \
 
- stderr, "%08X %lX %lX %lX %lX %X\n", opcode , \
-                                                                                 frs1, frs2, frs3, final_result, \
-                                                                                 (uint8_t)env->fp_status.float_exception_flags)
+typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
+    uint32_t opp;
+    uint64_t rs1;
+    uint64_t rs2;
+    uint64_t rs3;
+    uint64_t rd;
+    uint8_t  status;
+} binary_test_vector_t ;
+
+#define TV_STRUCT_SIZE      (sizeof(binary_test_vector_t))
+
+// We don't need the RND_mode, it's incoded in the opcode
+
+#define LOG_BINARY_TEST_VECTOR_3(opcode)    binary_test_vector_t tv_instance = {0}; \
+                                            tv_instance.opp = opcode; \
+                                            tv_instance.rs1 = frs1; \
+                                            tv_instance.rs2 = frs2; \
+                                            tv_instance.rs3 = frs3; \
+                                            tv_instance.rd = final_result; \
+                                            tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
+                                            fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
+                                            fflush(binary_test_vector_file)
+
+/*
+// #define LOG_BINARY_TEST_VECTOR_3(opcode)    fwrite(&opcode,                                          sizeof(uint32_t), 1, binary_test_vector_file); \
+//                                             fwrite(&frs1,                                            sizeof(uint64_t), 1, binary_test_vector_file); \
+//                                             fwrite(&frs2,                                            sizeof(uint64_t), 1, binary_test_vector_file); \
+//                                             fwrite(&frs3,                                            sizeof(uint64_t), 1, binary_test_vector_file); \
+//                                             fwrite(&final_result,                                    sizeof(uint64_t), 1, binary_test_vector_file); \
+//                                             uint8_t i_status = (uint8_t)env->fp_status.float_exception_flags; \
+//                                             fwrite(&i_status,                                        sizeof(uint8_t) , 1, binary_test_vector_file); \
+//                                             fflush(binary_test_vector_file)
+*/
 
 #define LOG_BINARY_TEST_VECTOR_2(opcode)    fprintf(stderr, "%08X %lX %lX %lX %lX %X\n", opcode , \
                                                                                  frs1, frs2, (uint64_t)0, final_result, \
@@ -70,7 +101,7 @@
                                                                                  frs1, (uint64_t)0, (uint64_t)0, final_result, \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-
+/*
 // #define LOG_BINARY_TEST_VECTOR_3(opcode)    fprintf(stderr, "%08X %lX %lX %lX %lX %X\n", opcode , \
 //                                                                                  frs1, frs2, frs3, final_result, \
 //                                                                                  (uint8_t)env->fp_status.float_exception_flags)
@@ -82,6 +113,7 @@
 // #define LOG_BINARY_TEST_VECTOR_1(opcode)    fprintf(stderr, "%08X %lX %lX %lX %lX %X\n", opcode , \
 //                                                                                  frs1, (uint64_t)0, (uint64_t)0, final_result, \
 //                                                                                  (uint8_t)env->fp_status.float_exception_flags)
+*/
 
 #define LOG_TEXTUAL_TEST_VECTOR_3(name)    {} 
 #define LOG_TEXTUAL_TEST_VECTOR_2(name)    {}
@@ -97,10 +129,7 @@
     #define LOG_TEXTUAL_TEST_VECTOR_1(name)    {}
 #endif
 
-extern uint8_t exp_bits_d;
-extern uint8_t frac_bits_d;
-extern uint8_t exp_bits_f;
-extern uint8_t frac_bits_f;
+
 
 target_ulong riscv_cpu_get_fflags(CPURISCVState *env)
 {
