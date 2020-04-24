@@ -34,8 +34,8 @@ extern FILE    *binary_test_vector_file;
 // #define USE_FLEXFLOAT 1
 #define USE_GVSOC_DEF               1
 
-#define ENABLE_TEXTUAL_TEST_VECTOR          1
-#define ENABLE_BINARY_TEST_VECTOR           0
+#define ENABLE_TEXTUAL_TEST_VECTOR          0
+#define ENABLE_BINARY_TEST_VECTOR           1
 
 #if ( ENABLE_TEXTUAL_TEST_VECTOR ) // In this case, Textual is defined, and binary is not
 #define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    fprintf(stderr, "%s %X %016lX %016lX %016lX %016lX %X\n", name , \
@@ -81,39 +81,39 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
 
 // We don't need the RND_mode, it's incoded in the opcode
 
-#define LOG_BINARY_TEST_VECTOR_3(opcode)    binary_test_vector_t tv_instance = {0}; \
+#define LOG_BINARY_TEST_VECTOR_3(opcode, nanbox_values)    binary_test_vector_t tv_instance = {0}; \
                                             tv_instance.opp = opcode; \
-                                            tv_instance.rs1 = frs1; \
-                                            tv_instance.rs2 = frs2; \
-                                            tv_instance.rs3 = frs3; \
-                                            tv_instance.rd = final_result; \
+                                            tv_instance.rs1 = (nanbox_values ? frs1 | (uint64_t)0xFFFFFFFF00000000 : frs1); \
+                                            tv_instance.rs2 = (nanbox_values ? frs2 | (uint64_t)0xFFFFFFFF00000000 : frs2); \
+                                            tv_instance.rs3 = (nanbox_values ? frs3 | (uint64_t)0xFFFFFFFF00000000 : frs3); \
+                                            tv_instance.rd  = (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result); \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
                                             fflush(binary_test_vector_file)
 
-#define LOG_BINARY_TEST_VECTOR_2(opcode, nanboxed_zero)    binary_test_vector_t tv_instance = {0}; \
+#define LOG_BINARY_TEST_VECTOR_2(opcode, nanbox_values)    binary_test_vector_t tv_instance = {0}; \
                                             tv_instance.opp = opcode; \
-                                            tv_instance.rs1 = frs1; \
-                                            tv_instance.rs2 = frs2; \
-                                            tv_instance.rs3 = (nanboxed_zero ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x00); \
-                                            tv_instance.rd = final_result; \
+                                            tv_instance.rs1 = (nanbox_values ? frs1 | (uint64_t)0xFFFFFFFF00000000 : frs1); \
+                                            tv_instance.rs2 = (nanbox_values ? frs2 | (uint64_t)0xFFFFFFFF00000000 : frs2); \
+                                            tv_instance.rs3 = (nanbox_values ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x0000000000000000); \
+                                            tv_instance.rd  = (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result); \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
                                             fflush(binary_test_vector_file)
 
-#define LOG_BINARY_TEST_VECTOR_1(opcode, nanboxed_zero)    binary_test_vector_t tv_instance = {0}; \
+#define LOG_BINARY_TEST_VECTOR_1(opcode, nanbox_values)    binary_test_vector_t tv_instance = {0}; \
                                             tv_instance.opp = opcode; \
-                                            tv_instance.rs1 = frs1; \
-                                            tv_instance.rs2 = (nanboxed_zero ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x00); \
-                                            tv_instance.rs3 = (nanboxed_zero ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x00); \
-                                            tv_instance.rd = final_result; \
+                                            tv_instance.rs1 = (nanbox_values ? frs1 | (uint64_t)0xFFFFFFFF00000000 : frs1); \
+                                            tv_instance.rs2 = (nanbox_values ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x0000000000000000); \
+                                            tv_instance.rs3 = (nanbox_values ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x0000000000000000); \
+                                            tv_instance.rd  = (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result); \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
                                             fflush(binary_test_vector_file)
 
 #define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    {} 
-#define LOG_TEXTUAL_TEST_VECTOR_2(name, nanbox_values, nanboxed_zero)    {}
-#define LOG_TEXTUAL_TEST_VECTOR_1(name, nanbox_values, nanboxed_zero)    {}
+#define LOG_TEXTUAL_TEST_VECTOR_2(name, nanbox_values)    {}
+#define LOG_TEXTUAL_TEST_VECTOR_1(name, nanbox_values)    {}
 
 #else // Do nothing in this case
     #define LOG_BINARY_TEST_VECTOR_3(opcode)    {} 
