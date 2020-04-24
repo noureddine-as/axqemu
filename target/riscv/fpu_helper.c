@@ -34,28 +34,37 @@ extern FILE    *binary_test_vector_file;
 // #define USE_FLEXFLOAT 1
 #define USE_GVSOC_DEF               1
 
-#define ENABLE_TEXTUAL_TEST_VECTOR          0
-#define ENABLE_BINARY_TEST_VECTOR           1
+#define ENABLE_TEXTUAL_TEST_VECTOR          1
+#define ENABLE_BINARY_TEST_VECTOR           0
 
 #if ( ENABLE_TEXTUAL_TEST_VECTOR ) // In this case, Textual is defined, and binary is not
-#define LOG_TEXTUAL_TEST_VECTOR_3(name)    fprintf(stderr, "%s %X %lX %lX %lX %lX %X\n", name , \
+#define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    fprintf(stderr, "%s %X %lX %lX %lX %lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
-                                                                                 frs1, frs2, frs3, final_result, \
+                                                                                 (nanbox_values ? frs1 | (uint64_t)0xFFFFFFFF00000000 : frs1), \
+                                                                                 (nanbox_values ? frs2 | (uint64_t)0xFFFFFFFF00000000 : frs2), \
+                                                                                 (nanbox_values ? frs3 | (uint64_t)0xFFFFFFFF00000000 : frs3), \
+                                                                                 (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result), \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-#define LOG_TEXTUAL_TEST_VECTOR_2(name)    fprintf(stderr, "%s %X %lX %lX FFFFFFFF00000000 %lX %X\n", name , \
+#define LOG_TEXTUAL_TEST_VECTOR_2(name, nanbox_values)    fprintf(stderr, "%s %X %lX %lX %s %lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
-                                                                                 frs1, frs2, final_result, \
+                                                                                 (nanbox_values ? frs1 | (uint64_t)0xFFFFFFFF00000000 : frs1), \
+                                                                                 (nanbox_values ? frs2 | (uint64_t)0xFFFFFFFF00000000 : frs2), \
+                                                                                 (nanbox_values ? "FFFFFFFF00000000" : "0000000000000000"), \
+                                                                                 (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result), \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-#define LOG_TEXTUAL_TEST_VECTOR_1(name)    fprintf(stderr, "%s %X %lX FFFFFFFF00000000 FFFFFFFF00000000 %lX %X\n", name , \
+#define LOG_TEXTUAL_TEST_VECTOR_1(name, nanbox_values)    fprintf(stderr, "%s %X %lX %s %s %lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
-                                                                                 frs1, final_result, \
+                                                                                 (nanbox_values ? frs1 | (uint64_t)0xFFFFFFFF00000000 : frs1), \
+                                                                                 (nanbox_values ? "FFFFFFFF00000000" : "0000000000000000"), \
+                                                                                 (nanbox_values ? "FFFFFFFF00000000" : "0000000000000000"), \
+                                                                                 (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result), \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-#define LOG_BINARY_TEST_VECTOR_3(opcode)    {} 
-#define LOG_BINARY_TEST_VECTOR_2(opcode)    {}
-#define LOG_BINARY_TEST_VECTOR_1(opcode)    {}
+#define LOG_BINARY_TEST_VECTOR_3(opcode, nanbox_values)    {} 
+#define LOG_BINARY_TEST_VECTOR_2(opcode, nanbox_values)    {}
+#define LOG_BINARY_TEST_VECTOR_1(opcode, nanbox_values)    {}
 
 #elif ( ENABLE_BINARY_TEST_VECTOR ) // In this case, Binary is defined, and textual is not
 
@@ -102,18 +111,18 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
                                             fflush(binary_test_vector_file)
 
-#define LOG_TEXTUAL_TEST_VECTOR_3(name)    {} 
-#define LOG_TEXTUAL_TEST_VECTOR_2(name)    {}
-#define LOG_TEXTUAL_TEST_VECTOR_1(name)    {}
+#define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    {} 
+#define LOG_TEXTUAL_TEST_VECTOR_2(name, nanbox_values, nanboxed_zero)    {}
+#define LOG_TEXTUAL_TEST_VECTOR_1(name, nanbox_values, nanboxed_zero)    {}
 
 #else // Do nothing in this case
     #define LOG_BINARY_TEST_VECTOR_3(opcode)    {} 
-    #define LOG_BINARY_TEST_VECTOR_2(opcode)    {}
-    #define LOG_BINARY_TEST_VECTOR_1(opcode)    {}
+    #define LOG_BINARY_TEST_VECTOR_2(opcode, nanboxed_zero)    {}
+    #define LOG_BINARY_TEST_VECTOR_1(opcode, nanboxed_zero)    {}
 
-    #define LOG_TEXTUAL_TEST_VECTOR_3(name)    {} 
-    #define LOG_TEXTUAL_TEST_VECTOR_2(name)    {}
-    #define LOG_TEXTUAL_TEST_VECTOR_1(name)    {}
+    #define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    {} 
+    #define LOG_TEXTUAL_TEST_VECTOR_2(name, nanbox_values, nanboxed_zero)    {}
+    #define LOG_TEXTUAL_TEST_VECTOR_1(name, nanbox_values, nanboxed_zero)    {}
 #endif
 
 
@@ -184,8 +193,8 @@ uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 #else
     final_result = float32_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_3(opcode);
-    LOG_TEXTUAL_TEST_VECTOR_3("FMADD_S");
+    LOG_BINARY_TEST_VECTOR_3(opcode, 1);
+    LOG_TEXTUAL_TEST_VECTOR_3("FMADD_S", 1);
     return final_result;
 }
 
@@ -205,8 +214,8 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 #else
     final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_3(opcode);
-    LOG_TEXTUAL_TEST_VECTOR_3("FMADD_D");
+    LOG_BINARY_TEST_VECTOR_3(opcode, 0);
+    LOG_TEXTUAL_TEST_VECTOR_3("FMADD_D", 0);
     return final_result;
 }
 
@@ -220,8 +229,8 @@ uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                             &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_3(opcode);
-    LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_S");
+    LOG_BINARY_TEST_VECTOR_3(opcode, 1);
+    LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_S", 1);
     return final_result;
 }
 
@@ -242,8 +251,8 @@ uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c,
                           &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_3(opcode);
-    LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_D");
+    LOG_BINARY_TEST_VECTOR_3(opcode, 0);
+    LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_D", 0);
     return final_result;
 }
 
@@ -257,8 +266,8 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_3(opcode);
-    LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_S");
+    LOG_BINARY_TEST_VECTOR_3(opcode, 1);
+    LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_S", 1);
     return final_result;
 }
 
@@ -282,8 +291,8 @@ uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_product,
                           &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_3(opcode);
-    LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_D");
+    LOG_BINARY_TEST_VECTOR_3(opcode, 0);
+    LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_D", 0);
     return final_result;
 }
 
@@ -297,8 +306,8 @@ uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_3(opcode);
-    LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_S");
+    LOG_BINARY_TEST_VECTOR_3(opcode, 1);
+    LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_S", 1);
     return final_result;
 }
 
@@ -319,8 +328,8 @@ uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c |
                           float_muladd_negate_product, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_3(opcode);
-    LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_D");
+    LOG_BINARY_TEST_VECTOR_3(opcode, 0);
+    LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_D", 0);
     return final_result;
 }
 
@@ -333,7 +342,7 @@ uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     final_result = float32_add(frs1, frs2, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_2(opcode, 1);
-    LOG_TEXTUAL_TEST_VECTOR_2("FADD_S");
+    LOG_TEXTUAL_TEST_VECTOR_2("FADD_S", 1);
     return final_result;
 }
 
@@ -346,7 +355,7 @@ uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     final_result = float32_sub(frs1, frs2, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_2(opcode, 1);
-    LOG_TEXTUAL_TEST_VECTOR_2("FSUB_S");
+    LOG_TEXTUAL_TEST_VECTOR_2("FSUB_S", 1);
     return final_result;
 }
 
@@ -359,7 +368,7 @@ uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     final_result = float32_mul(frs1, frs2, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_2(opcode, 1);
-    LOG_TEXTUAL_TEST_VECTOR_2("FMUL_S");
+    LOG_TEXTUAL_TEST_VECTOR_2("FMUL_S", 1);
     return final_result;
 }
 
@@ -372,7 +381,7 @@ uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     final_result = float32_div(frs1, frs2, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_2(opcode, 1);
-    LOG_TEXTUAL_TEST_VECTOR_2("FDIV_S");
+    LOG_TEXTUAL_TEST_VECTOR_2("FDIV_S", 1);
     return final_result;
 }
 
@@ -395,7 +404,7 @@ uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
     final_result = float32_sqrt(frs1, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_1(opcode, 1);
-    LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_S");
+    LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_S", 1);
     return final_result;
 }
 
@@ -492,7 +501,7 @@ uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     final_result = float64_add(frs1, frs2, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_2(opcode, 0);
-    LOG_TEXTUAL_TEST_VECTOR_2("FADD_D");
+    LOG_TEXTUAL_TEST_VECTOR_2("FADD_D", 0);
     return final_result;
 }
 
@@ -511,7 +520,7 @@ uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     final_result = float64_sub(frs1, frs2, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_2(opcode, 0);
-    LOG_TEXTUAL_TEST_VECTOR_2("FSUB_D");
+    LOG_TEXTUAL_TEST_VECTOR_2("FSUB_D", 0);
     return final_result;
 }
 
@@ -530,7 +539,7 @@ uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     final_result = float64_mul(frs1, frs2, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_2(opcode, 0);
-    LOG_TEXTUAL_TEST_VECTOR_2("FMUL_D");
+    LOG_TEXTUAL_TEST_VECTOR_2("FMUL_D", 0);
     return final_result;
 }
 
@@ -549,7 +558,7 @@ uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     final_result = float64_div(frs1, frs2, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_2(opcode, 0);
-    LOG_TEXTUAL_TEST_VECTOR_2("FDIV_D");
+    LOG_TEXTUAL_TEST_VECTOR_2("FDIV_D", 0);
     return final_result;
 }
 
@@ -587,7 +596,7 @@ uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
     final_result = float64_sqrt(frs1, &env->fp_status);
 #endif
     LOG_BINARY_TEST_VECTOR_1(opcode, 0);
-    LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_D");
+    LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_D", 0);
     return final_result;
 }
 

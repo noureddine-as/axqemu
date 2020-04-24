@@ -161,7 +161,7 @@
   name(&ff_res, &ff_a, &ff_b); \
   update_fflags_fenv(s); \
   float res_float = ff_get_float(&ff_res); \
-  return ((uint64_t)(0xFFFFFFFF00000000) | ((uint64_t)(*(uint32_t *)( &res_float ))));  
+  return (*(uint32_t *)( &res_float ));  
 
 #define FF_EXEC_2_shift(s, name, a, b, e, m, original_length) \
   FF_INIT_2_shift(a, b, e, m, original_length) \
@@ -191,7 +191,7 @@
   name(&ff_res, &ff_a, &ff_b, &ff_c); \
   update_fflags_fenv(s); \
   float res_float = ff_get_float(&ff_res); \
-  return ((uint64_t)(0xFFFFFFFF00000000) | ((uint64_t)(*(uint32_t *)( &res_float ))));  
+  return (*(uint32_t *)( &res_float ));  
 
 #define FF_EXEC_3_shift(s, name, a, b, c, e, m, original_length) \
   FF_INIT_3_shift(a, b, c, e, m, original_length) \
