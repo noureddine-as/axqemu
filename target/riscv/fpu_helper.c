@@ -82,21 +82,21 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
                                             fflush(binary_test_vector_file)
 
-#define LOG_BINARY_TEST_VECTOR_2(opcode)    binary_test_vector_t tv_instance = {0}; \
+#define LOG_BINARY_TEST_VECTOR_2(opcode, nanboxed_zero)    binary_test_vector_t tv_instance = {0}; \
                                             tv_instance.opp = opcode; \
                                             tv_instance.rs1 = frs1; \
                                             tv_instance.rs2 = frs2; \
-                                            tv_instance.rs3 = (uint64_t)0xFFFFFFFF00000000; \
+                                            tv_instance.rs3 = (nanboxed_zero ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x00); \
                                             tv_instance.rd = final_result; \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
                                             fflush(binary_test_vector_file)
 
-#define LOG_BINARY_TEST_VECTOR_1(opcode)    binary_test_vector_t tv_instance = {0}; \
+#define LOG_BINARY_TEST_VECTOR_1(opcode, nanboxed_zero)    binary_test_vector_t tv_instance = {0}; \
                                             tv_instance.opp = opcode; \
                                             tv_instance.rs1 = frs1; \
-                                            tv_instance.rs2 = (uint64_t)0xFFFFFFFF00000000; \
-                                            tv_instance.rs3 = (uint64_t)0xFFFFFFFF00000000; \
+                                            tv_instance.rs2 = (nanboxed_zero ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x00); \
+                                            tv_instance.rs3 = (nanboxed_zero ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x00); \
                                             tv_instance.rd = final_result; \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
                                             fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
@@ -332,7 +332,7 @@ uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 #else
     final_result = float32_add(frs1, frs2, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_2(opcode);
+    LOG_BINARY_TEST_VECTOR_2(opcode, 1);
     LOG_TEXTUAL_TEST_VECTOR_2("FADD_S");
     return final_result;
 }
@@ -345,7 +345,7 @@ uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 #else
     final_result = float32_sub(frs1, frs2, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_2(opcode);
+    LOG_BINARY_TEST_VECTOR_2(opcode, 1);
     LOG_TEXTUAL_TEST_VECTOR_2("FSUB_S");
     return final_result;
 }
@@ -358,7 +358,7 @@ uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 #else
     final_result = float32_mul(frs1, frs2, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_2(opcode);
+    LOG_BINARY_TEST_VECTOR_2(opcode, 1);
     LOG_TEXTUAL_TEST_VECTOR_2("FMUL_S");
     return final_result;
 }
@@ -371,7 +371,7 @@ uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 #else
     final_result = float32_div(frs1, frs2, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_2(opcode);
+    LOG_BINARY_TEST_VECTOR_2(opcode, 1);
     LOG_TEXTUAL_TEST_VECTOR_2("FDIV_S");
     return final_result;
 }
@@ -394,7 +394,7 @@ uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
 #else
     final_result = float32_sqrt(frs1, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_1(opcode);
+    LOG_BINARY_TEST_VECTOR_1(opcode, 1);
     LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_S");
     return final_result;
 }
@@ -491,7 +491,7 @@ uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 #else
     final_result = float64_add(frs1, frs2, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_2(opcode);
+    LOG_BINARY_TEST_VECTOR_2(opcode, 0);
     LOG_TEXTUAL_TEST_VECTOR_2("FADD_D");
     return final_result;
 }
@@ -510,7 +510,7 @@ uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 #else
     final_result = float64_sub(frs1, frs2, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_2(opcode);
+    LOG_BINARY_TEST_VECTOR_2(opcode, 0);
     LOG_TEXTUAL_TEST_VECTOR_2("FSUB_D");
     return final_result;
 }
@@ -529,7 +529,7 @@ uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 #else
     final_result = float64_mul(frs1, frs2, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_2(opcode);
+    LOG_BINARY_TEST_VECTOR_2(opcode, 0);
     LOG_TEXTUAL_TEST_VECTOR_2("FMUL_D");
     return final_result;
 }
@@ -548,7 +548,7 @@ uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 #else
     final_result = float64_div(frs1, frs2, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_2(opcode);
+    LOG_BINARY_TEST_VECTOR_2(opcode, 0);
     LOG_TEXTUAL_TEST_VECTOR_2("FDIV_D");
     return final_result;
 }
@@ -586,7 +586,7 @@ uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
 #else
     final_result = float64_sqrt(frs1, &env->fp_status);
 #endif
-    LOG_BINARY_TEST_VECTOR_1(opcode);
+    LOG_BINARY_TEST_VECTOR_1(opcode, 0);
     LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_D");
     return final_result;
 }
