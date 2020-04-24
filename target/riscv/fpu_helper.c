@@ -38,7 +38,7 @@ extern FILE    *binary_test_vector_file;
 #define ENABLE_BINARY_TEST_VECTOR           0
 
 #if ( ENABLE_TEXTUAL_TEST_VECTOR ) // In this case, Textual is defined, and binary is not
-#define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    fprintf(stderr, "%s %X %lX %lX %lX %lX %X\n", name , \
+#define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    fprintf(stderr, "%s %X %016lX %016lX %016lX %016lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  (nanbox_values ? frs1 | (uint64_t)0xFFFFFFFF00000000 : frs1), \
                                                                                  (nanbox_values ? frs2 | (uint64_t)0xFFFFFFFF00000000 : frs2), \
@@ -46,7 +46,7 @@ extern FILE    *binary_test_vector_file;
                                                                                  (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result), \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-#define LOG_TEXTUAL_TEST_VECTOR_2(name, nanbox_values)    fprintf(stderr, "%s %X %lX %lX %s %lX %X\n", name , \
+#define LOG_TEXTUAL_TEST_VECTOR_2(name, nanbox_values)    fprintf(stderr, "%s %X %016lX %016lX %s %016lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  (nanbox_values ? frs1 | (uint64_t)0xFFFFFFFF00000000 : frs1), \
                                                                                  (nanbox_values ? frs2 | (uint64_t)0xFFFFFFFF00000000 : frs2), \
@@ -54,7 +54,7 @@ extern FILE    *binary_test_vector_file;
                                                                                  (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result), \
                                                                                  (uint8_t)env->fp_status.float_exception_flags)
 
-#define LOG_TEXTUAL_TEST_VECTOR_1(name, nanbox_values)    fprintf(stderr, "%s %X %lX %s %s %lX %X\n", name , \
+#define LOG_TEXTUAL_TEST_VECTOR_1(name, nanbox_values)    fprintf(stderr, "%s %X %016lX %s %s %016lX %X\n", name , \
                                                                                  (uint8_t)env->fp_status.float_rounding_mode, \
                                                                                  (nanbox_values ? frs1 | (uint64_t)0xFFFFFFFF00000000 : frs1), \
                                                                                  (nanbox_values ? "FFFFFFFF00000000" : "0000000000000000"), \
