@@ -68,6 +68,10 @@ extern uint8_t frac_bits_d;
 extern uint8_t exp_bits_f;
 extern uint8_t frac_bits_f;
 extern FILE    *binary_test_vector_file;
+
+extern uint64_t non_approx_region_start;
+extern uint64_t non_approx_region_end;
+
 // extern uint8_t shift_bits;
 // uint64_t input_mask;
 // uint64_t output_mask;

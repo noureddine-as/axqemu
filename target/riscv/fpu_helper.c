@@ -31,6 +31,9 @@ extern uint8_t exp_bits_f;
 extern uint8_t frac_bits_f;
 extern FILE    *binary_test_vector_file;
 
+extern uint64_t non_approx_region_start;
+extern uint64_t non_approx_region_end;
+
 // #define USE_FLEXFLOAT 1
 #define USE_GVSOC_DEF               1
 
@@ -199,7 +202,7 @@ uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 }
 
 uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
-                        uint64_t frs3, uint32_t opcode)
+                        uint64_t frs3, uint32_t opcode, uint64_t pc_addr)
 {
     uint64_t final_result;
 #if defined( USE_FLEXFLOAT )
@@ -210,7 +213,12 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+    fprintf(stderr, "Virtual Addr PC  = %08lX\n", env->pc);
+    fprintf(stderr, "Address from the TB = %08lX\n", pc_addr);
+    if(unlikely( env->pc >= non_approx_region_start && env->pc < non_approx_region_end))
+        final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
+    else
+        final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
 #else
     final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
 #endif
@@ -496,7 +504,11 @@ uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     frs_out = f64_add_d_custom(frs1_in, frs2_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
-    final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+    fprintf(stderr, "Virtual Addr PC  = %08lX\n", env->pc);
+    if(unlikely( env->pc >= non_approx_region_start && env->pc < non_approx_region_end))
+        final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+    else
+        final_result = float64_add(frs1, frs2, &env->fp_status);
 #else
     final_result = float64_add(frs1, frs2, &env->fp_status);
 #endif
