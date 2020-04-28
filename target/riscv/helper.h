@@ -12,7 +12,7 @@ DEF_HELPER_FLAGS_2(set_rounding_mode, TCG_CALL_NO_WG, void, env, i32)
 
 /* Floating Point - fused */
 DEF_HELPER_FLAGS_5(fmadd_s, TCG_CALL_NO_RWG, i64, env, i64, i64, i64, i32)
-DEF_HELPER_FLAGS_6(fmadd_d, TCG_CALL_NO_RWG, i64, env, i64, i64, i64, i32, i64)
+DEF_HELPER_FLAGS_5(fmadd_d, TCG_CALL_NO_RWG, i64, env, i64, i64, i64, i32)
 DEF_HELPER_FLAGS_5(fmsub_s, TCG_CALL_NO_RWG, i64, env, i64, i64, i64, i32)
 DEF_HELPER_FLAGS_5(fmsub_d, TCG_CALL_NO_RWG, i64, env, i64, i64, i64, i32)
 DEF_HELPER_FLAGS_5(fnmsub_s, TCG_CALL_NO_RWG, i64, env, i64, i64, i64, i32)

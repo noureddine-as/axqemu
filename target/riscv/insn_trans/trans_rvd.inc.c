@@ -53,14 +53,11 @@ static bool trans_fmadd_d(DisasContext *ctx, arg_fmadd_d *a)
 {
     AXQEMU_TEST_VECTOR_PREFIX;
 
-    TCGv_i64 pc_addr = tcg_temp_new_i64();
-    tcg_gen_movi_i64(pc_addr, ctx->pc_succ_insn);
-
     REQUIRE_FPU;
     REQUIRE_EXT(ctx, RVD);
     gen_set_rm(ctx, a->rm);
     gen_helper_fmadd_d(cpu_fpr[a->rd], cpu_env, cpu_fpr[a->rs1],
-                       cpu_fpr[a->rs2], cpu_fpr[a->rs3], opp, pc_addr);
+                       cpu_fpr[a->rs2], cpu_fpr[a->rs3], opp);
     mark_fs_dirty(ctx);
 
     AXQEMU_TEST_VECTOR_SUFFIX;
