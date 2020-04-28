@@ -19,6 +19,9 @@ uint8_t frac_bits_f = 23;
 
 FILE    *binary_test_vector_file = NULL;
 
+uint64_t non_approx_region_start = 0;
+uint64_t non_approx_region_size = 0;
+
 // uint8_t shift_bits = 0;
 // uint64_t input_mask  = 0xFFFFFFFFFFFFFFFF;
 // uint64_t output_mask = 0xFFFFFFFFFFFFFFFF;

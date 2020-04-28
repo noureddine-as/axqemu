@@ -68,6 +68,10 @@ extern uint8_t frac_bits_d;
 extern uint8_t exp_bits_f;
 extern uint8_t frac_bits_f;
 extern FILE    *binary_test_vector_file;
+
+extern uint64_t non_approx_region_start;
+extern uint64_t non_approx_region_size;
+
 // extern uint8_t shift_bits;
 // uint64_t input_mask;
 // uint64_t output_mask;
@@ -436,6 +440,17 @@ static void handle_arg_fracbits_f(const char *arg)
     frac_bits_f = (uint8_t)atoi(arg);
     // shift_bits = 64 - 1 - exp_bits_f - frac_bits_f; // update anyway
 }
+
+static void handle_arg_non_approx_region_start(const char *arg)
+{
+    non_approx_region_start = (uint64_t)strtol(arg, NULL, 16); // (arg);
+}
+
+static void handle_arg_non_approx_region_size(const char *arg)
+{
+    non_approx_region_size = (uint64_t)strtol(arg, NULL, 16); //atol(arg);
+}
+
 // static void handle_arg_axmode(const char *arg)
 // {
 //     axmode = (uint8_t)atoi(arg);
@@ -508,6 +523,10 @@ static const struct qemu_argument arg_table[] = {
      "<EXP_BITS_f>",       "The FPU exponent bit-width for the F extension. Default is 8"},
     {"fracbitsf",          "",         true,  handle_arg_fracbits_f,
      "<FRAC_BITS_f>",       "The FPU fraction bit-width for the F extension. Default is 23"},
+    {"non_approx_region_start",          "",         true,  handle_arg_non_approx_region_start,
+     "<@ADDR>",       "The Start address of a non-approximable (.evaluator) region."},
+    {"non_approx_region_size",          "",         true,  handle_arg_non_approx_region_size,
+     "<@ADDR>",       "The Size (in Bytes) of a non-approximable (.evaluator) region."},
 #endif
     {NULL, NULL, false, NULL, NULL, NULL}
 };
@@ -908,6 +927,17 @@ int main(int argc, char **argv, char **envp)
         if ((binary_test_vector_file = fopen("binary_test_vector.bin", "wb")) != NULL) {
             fprintf(stderr, "# Dumping binary test vectors in file < binary_test_vector.bin > \n");
         }
+    }
+    // @AXSPIKE : ensure that exp and frac bit-widths aren't zeroes.
+    if ((!non_approx_region_start) || (!non_approx_region_size))
+    {
+        fprintf(stderr, "# No .evaluator region is specified. The approximation will be applied on the whole application.\n");
+    }
+    else {
+        fprintf(stderr, "# Non approximable region defined.\n"
+                        "# Start addr = %016lX\n"
+                        "# End   addr = %016lX\n"
+                        "# Size       = %ld Bytes\n", non_approx_region_start, non_approx_region_start + non_approx_region_size, non_approx_region_size);
     }
 
     if (gdbstub_port) {
