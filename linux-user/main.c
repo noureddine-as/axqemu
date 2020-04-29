@@ -928,8 +928,8 @@ int main(int argc, char **argv, char **envp)
             fprintf(stderr, "# Dumping binary test vectors in file < binary_test_vector.bin > \n");
         }
     }
-    // @AXSPIKE : ensure that exp and frac bit-widths aren't zeroes.
-    if ((!non_approx_region_start) || (!non_approx_region_size))
+    // @AXSPIKE : ensure that Non-Approximable Regions parameters are non-zeroes.
+    if ((non_approx_region_start == 0) || (non_approx_region_size == 0))
     {
         fprintf(stderr, "# No .evaluator region is specified. The approximation will be applied on the whole application.\n");
     }

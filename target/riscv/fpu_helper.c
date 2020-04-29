@@ -38,7 +38,7 @@ extern uint64_t non_approx_region_size;
 #define USE_GVSOC_DEF               1
 
 #define ENABLE_TEXTUAL_TEST_VECTOR          0
-#define ENABLE_BINARY_TEST_VECTOR           1
+#define ENABLE_BINARY_TEST_VECTOR           0
 
 #if ( ENABLE_TEXTUAL_TEST_VECTOR ) // In this case, Textual is defined, and binary is not
 #define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    fprintf(stderr, "%s %X %016lX %016lX %016lX %016lX %X\n", name , \
@@ -222,10 +222,10 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
-        fprintf(stderr, "MADD_D Executed PRECISELY !!!\n");
+        // fprintf(stderr, "MADD_D Executed PRECISELY !!!\n");
         final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
     } else {
-        fprintf(stderr, "MADD_D Executed APPROXIMATELY  --- @ADDR = %08lX     \n", env->pc);
+        // fprintf(stderr, "MADD_D Executed APPROXIMATELY  --- @ADDR = %08lX     \n", env->pc);
         final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_3(opcode, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FMADD_D", 0);
