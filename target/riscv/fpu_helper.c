@@ -38,7 +38,11 @@ extern uint64_t non_approx_region_size;
 #define USE_GVSOC_DEF               1
 
 #define ENABLE_TEXTUAL_TEST_VECTOR          0
-#define ENABLE_BINARY_TEST_VECTOR           0
+#define ENABLE_BINARY_TEST_VECTOR           1
+#define ENABLE_TEXTUAL_PERF_DEBUG           0
+
+// #define MARK_APPROXIMATE   ( (((uint32_t)0x00000001) << 26) )
+#define MARK_APPROXIMATE   ((uint32_t)0x00000000)
 
 #if ( ENABLE_TEXTUAL_TEST_VECTOR ) // In this case, Textual is defined, and binary is not
 #define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    fprintf(stderr, "%s %X %016lX %016lX %016lX %016lX %X\n", name , \
@@ -69,6 +73,16 @@ extern uint64_t non_approx_region_size;
 #define LOG_BINARY_TEST_VECTOR_2(opcode, nanbox_values)    {}
 #define LOG_BINARY_TEST_VECTOR_1(opcode, nanbox_values)    {}
 
+#elif ( ENABLE_TEXTUAL_PERF_DEBUG ) // Help debugging the executable itself
+
+#define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    fprintf(stderr, "%016lX\n", env->pc)
+#define LOG_TEXTUAL_TEST_VECTOR_2(name, nanbox_values)    fprintf(stderr, "%016lX\n", env->pc)
+#define LOG_TEXTUAL_TEST_VECTOR_1(name, nanbox_values)    fprintf(stderr, "%016lX\n", env->pc)
+
+#define LOG_BINARY_TEST_VECTOR_3(opcode, nanbox_values)    {} 
+#define LOG_BINARY_TEST_VECTOR_2(opcode, nanbox_values)    {}
+#define LOG_BINARY_TEST_VECTOR_1(opcode, nanbox_values)    {}
+
 #elif ( ENABLE_BINARY_TEST_VECTOR ) // In this case, Binary is defined, and textual is not
 
 typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
@@ -91,8 +105,13 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
                                             tv_instance.rs3 = (nanbox_values ? frs3 | (uint64_t)0xFFFFFFFF00000000 : frs3); \
                                             tv_instance.rd  = (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result); \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
-                                            fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
-                                            fflush(binary_test_vector_file)
+                                            if ( !(   ( nanbox_values   && (tv_instance.rs1 == (uint64_t)0xFFFFFFFF00000000) && (tv_instance.rs2 == (uint64_t)0xFFFFFFFF00000000) && (tv_instance.rs3 == (uint64_t)0xFFFFFFFF00000000)) \
+                                                   || ((!nanbox_values) && ((tv_instance.rs1 == (uint64_t)0x0000000000000000) && (tv_instance.rs2 == (uint64_t)0x0000000000000000) && (tv_instance.rs3 == (uint64_t)0x0000000000000000))) \
+                                                  ) \
+                                               ){                                                                \
+                                                fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
+                                                fflush(binary_test_vector_file);                                    \
+                                            }
 
 #define LOG_BINARY_TEST_VECTOR_2(opcode, nanbox_values)    binary_test_vector_t tv_instance = {0}; \
                                             tv_instance.opp = opcode; \
@@ -101,8 +120,13 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
                                             tv_instance.rs3 = (nanbox_values ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x0000000000000000); \
                                             tv_instance.rd  = (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result); \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
-                                            fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
-                                            fflush(binary_test_vector_file)
+                                            if ( !(   ( nanbox_values   && (tv_instance.rs1 == (uint64_t)0xFFFFFFFF00000000) && (tv_instance.rs2 == (uint64_t)0xFFFFFFFF00000000) && (tv_instance.rs3 == (uint64_t)0xFFFFFFFF00000000)) \
+                                                   || ((!nanbox_values) && ((tv_instance.rs1 == (uint64_t)0x0000000000000000) && (tv_instance.rs2 == (uint64_t)0x0000000000000000) && (tv_instance.rs3 == (uint64_t)0x0000000000000000))) \
+                                                  ) \
+                                               ){                                                                \
+                                                fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
+                                                fflush(binary_test_vector_file);                                    \
+                                            }
 
 #define LOG_BINARY_TEST_VECTOR_1(opcode, nanbox_values)    binary_test_vector_t tv_instance = {0}; \
                                             tv_instance.opp = opcode; \
@@ -111,8 +135,13 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
                                             tv_instance.rs3 = (nanbox_values ? (uint64_t)0xFFFFFFFF00000000 : (uint64_t)0x0000000000000000); \
                                             tv_instance.rd  = (nanbox_values ? final_result | (uint64_t)0xFFFFFFFF00000000 : final_result); \
                                             tv_instance.status = (uint8_t)env->fp_status.float_exception_flags; \
-                                            fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
-                                            fflush(binary_test_vector_file)
+                                            if ( !(   ( nanbox_values   && (tv_instance.rs1 == (uint64_t)0xFFFFFFFF00000000) && (tv_instance.rs2 == (uint64_t)0xFFFFFFFF00000000) && (tv_instance.rs3 == (uint64_t)0xFFFFFFFF00000000)) \
+                                                   || ((!nanbox_values) && ((tv_instance.rs1 == (uint64_t)0x0000000000000000) && (tv_instance.rs2 == (uint64_t)0x0000000000000000) && (tv_instance.rs3 == (uint64_t)0x0000000000000000))) \
+                                                  ) \
+                                               ){                                                                \
+                                                fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
+                                                fflush(binary_test_vector_file);                                    \
+                                            }
 
 #define LOG_TEXTUAL_TEST_VECTOR_3(name, nanbox_values)    {} 
 #define LOG_TEXTUAL_TEST_VECTOR_2(name, nanbox_values)    {}
@@ -198,7 +227,7 @@ uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
         final_result = float32_muladd(frs1, frs2, frs3, 0, &env->fp_status);
     } else {
         final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-        LOG_BINARY_TEST_VECTOR_3(opcode, 1);
+        LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_3("FMADD_S", 1);
     }
 #else
@@ -227,7 +256,7 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     } else {
         // fprintf(stderr, "MADD_D Executed APPROXIMATELY  --- @ADDR = %08lX     \n", env->pc);
         final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-        LOG_BINARY_TEST_VECTOR_3(opcode, 0);
+        LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FMADD_D", 0);
     }
 #else
@@ -247,7 +276,7 @@ uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
         final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c, &env->fp_status);
     } else {
         final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-        LOG_BINARY_TEST_VECTOR_3(opcode, 1);
+        LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_S", 1);
     }
 #else
@@ -274,7 +303,7 @@ uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
         final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c, &env->fp_status);
     } else {
         final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-        LOG_BINARY_TEST_VECTOR_3(opcode, 0);
+        LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_D", 0);
     }
 #else
@@ -294,7 +323,7 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
         final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_product, &env->fp_status);
     } else {
         final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-        LOG_BINARY_TEST_VECTOR_3(opcode, 1);
+        LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_S", 1);
     }
 #else
@@ -324,7 +353,7 @@ uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
         final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_product, &env->fp_status);
     } else {
         final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-        LOG_BINARY_TEST_VECTOR_3(opcode, 0);
+        LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_D", 0);
     }
 #else
@@ -344,7 +373,7 @@ uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
         final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c | float_muladd_negate_product, &env->fp_status);
     } else {
         final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-        LOG_BINARY_TEST_VECTOR_3(opcode, 1);
+        LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_S", 1);
     }
 #else
@@ -371,7 +400,7 @@ uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
         final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c | float_muladd_negate_product, &env->fp_status);
     } else {
         final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-        LOG_BINARY_TEST_VECTOR_3(opcode, 0);
+        LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_D", 0);
     }
 #else
@@ -390,7 +419,7 @@ uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
         final_result = float32_add(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-        LOG_BINARY_TEST_VECTOR_2(opcode, 1);
+        LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_2("FADD_S", 1);
     }
 #else
@@ -409,7 +438,7 @@ uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
         final_result = float32_sub(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-        LOG_BINARY_TEST_VECTOR_2(opcode, 1);
+        LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_2("FSUB_S", 1);
     }
 #else
@@ -428,7 +457,7 @@ uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
         final_result = float32_mul(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-        LOG_BINARY_TEST_VECTOR_2(opcode, 1);
+        LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_2("FMUL_S", 1);
     }
 #else
@@ -447,7 +476,7 @@ uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
         final_result = float32_div(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-        LOG_BINARY_TEST_VECTOR_2(opcode, 1);
+        LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_2("FDIV_S", 1);
     }
 #else
@@ -476,7 +505,7 @@ uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
         final_result = float32_sqrt(frs1, &env->fp_status);
     } else {
         final_result = lib_flexfloat_sqrtf_round(frs1, env, exp_bits_f, frac_bits_f, (uint8_t)32);
-        LOG_BINARY_TEST_VECTOR_1(opcode, 1);
+        LOG_BINARY_TEST_VECTOR_1(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_S", 1);
     }
 #else
@@ -579,7 +608,7 @@ uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
         final_result = float64_add(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-        LOG_BINARY_TEST_VECTOR_2(opcode, 0);
+        LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_2("FADD_D", 0);
     }
 #else
@@ -604,7 +633,7 @@ uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
         final_result = float64_sub(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-        LOG_BINARY_TEST_VECTOR_2(opcode, 0);
+        LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_2("FSUB_D", 0);
     }
 #else
@@ -629,7 +658,7 @@ uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
         final_result = float64_mul(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-        LOG_BINARY_TEST_VECTOR_2(opcode, 0);
+        LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_2("FMUL_D", 0);
     }
 #else
@@ -654,7 +683,7 @@ uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
         final_result = float64_div(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-        LOG_BINARY_TEST_VECTOR_2(opcode, 0);
+        LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_2("FDIV_D", 0);
     }
 #else
@@ -698,7 +727,7 @@ uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
         final_result = float64_sqrt(frs1, &env->fp_status);
     } else {
         final_result = lib_flexfloat_sqrt_round(frs1, env, exp_bits_d, frac_bits_d, (uint8_t)64);
-        LOG_BINARY_TEST_VECTOR_1(opcode, 0);
+        LOG_BINARY_TEST_VECTOR_1(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_D", 0);
     }
 #else

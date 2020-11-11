@@ -924,12 +924,14 @@ int main(int argc, char **argv, char **envp)
     else {
         fprintf(stderr, "# AXQEMU[ linux user mode ]: Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
         fprintf(stderr, "#                           Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
-        if ((binary_test_vector_file = fopen("binary_test_vector.bin", "wb")) != NULL) {
+        char filename[100] = {0};
+        sprintf(filename, "binary_test_vector_expf%02d_fracf%02d_expd%02d_fracd%02d.bin", exp_bits_f, frac_bits_f, exp_bits_d, frac_bits_d);
+        if ((binary_test_vector_file = fopen(filename, "wb")) != NULL) {
             fprintf(stderr, "# Dumping binary test vectors in file < binary_test_vector.bin > \n");
         }
     }
     // @AXSPIKE : ensure that Non-Approximable Regions parameters are non-zeroes.
-    if ((non_approx_region_start == 0) || (non_approx_region_size == 0))
+    if ((non_approx_region_start == 0) && (non_approx_region_size == 0))
     {
         fprintf(stderr, "# No .evaluator region is specified. The approximation will be applied on the whole application.\n");
     }
