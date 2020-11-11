@@ -38,7 +38,7 @@ extern uint64_t non_approx_region_size;
 #define USE_GVSOC_DEF               1
 
 #define ENABLE_TEXTUAL_TEST_VECTOR          0
-#define ENABLE_BINARY_TEST_VECTOR           1
+#define ENABLE_BINARY_TEST_VECTOR           0
 #define ENABLE_TEXTUAL_PERF_DEBUG           0
 
 // #define MARK_APPROXIMATE   ( (((uint32_t)0x00000001) << 26) )
