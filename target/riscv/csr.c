@@ -176,6 +176,130 @@ static int write_fcsr(CPURISCVState *env, int csrno, target_ulong val)
     return 0;
 }
 
+/* ****************************************************************************************
+    User, Non-Standard Variable Precision in Time CSRs 
+ * ****************************************************************************************/
+extern uint8_t vpt_status;
+extern uint8_t vpt_frac_bits_f;
+extern uint8_t vpt_frac_bits_d;
+extern uint8_t vpt_exec_mode;
+
+static int read_fvpt_status(CPURISCVState *env, int csrno, target_ulong *val)
+{
+#if !defined(CONFIG_USER_ONLY)
+    if (!env->debugger && !(env->mstatus & MSTATUS_FS)) {
+        return -1;
+    }
+#endif
+
+    // fprintf(stderr, "# FVPT_STATUS READ %d \n", vpt_status);
+    *val = vpt_status;
+    return 0;
+}
+
+static int write_fvpt_status(CPURISCVState *env, int csrno, target_ulong val)
+{
+#if !defined(CONFIG_USER_ONLY)
+    if (!env->debugger && !(env->mstatus & MSTATUS_FS)) {
+        return -1;
+    }
+    env->mstatus |= MSTATUS_FS;
+#endif
+    
+    vpt_status = val;
+    // fprintf(stderr, "# FVPT_STATUS WRITE %d \n", vpt_status);
+    return 0;
+}
+
+static int read_fvpt_prec_f(CPURISCVState *env, int csrno, target_ulong *val)
+{
+#if !defined(CONFIG_USER_ONLY)
+    if (!env->debugger && !(env->mstatus & MSTATUS_FS)) {
+        return -1;
+    }
+#endif
+
+    // fprintf(stderr, "# read_fvpt_prec_f %d \n", vpt_frac_bits_f);
+    *val = vpt_frac_bits_f;
+    return 0;
+}
+
+static int write_fvpt_prec_f(CPURISCVState *env, int csrno, target_ulong val)
+{
+#if !defined(CONFIG_USER_ONLY)
+    if (!env->debugger && !(env->mstatus & MSTATUS_FS)) {
+        return -1;
+    }
+    env->mstatus |= MSTATUS_FS;
+#endif
+    
+    vpt_frac_bits_f = val;
+    // fprintf(stderr, "# write_fvpt_prec_f %d \n", vpt_frac_bits_f);
+    return 0;
+}
+
+
+static int read_fvpt_prec_d(CPURISCVState *env, int csrno, target_ulong *val)
+{
+#if !defined(CONFIG_USER_ONLY)
+    if (!env->debugger && !(env->mstatus & MSTATUS_FS)) {
+        return -1;
+    }
+#endif
+
+    // fprintf(stderr, "# read_fvpt_prec_d %d \n", vpt_frac_bits_d);
+    *val = vpt_frac_bits_d;
+    return 0;
+}
+
+static int write_fvpt_prec_d(CPURISCVState *env, int csrno, target_ulong val)
+{
+#if !defined(CONFIG_USER_ONLY)
+    if (!env->debugger && !(env->mstatus & MSTATUS_FS)) {
+        return -1;
+    }
+    env->mstatus |= MSTATUS_FS;
+#endif
+    
+    vpt_frac_bits_d = val;
+    // fprintf(stderr, "# write_fvpt_prec_d %d \n", vpt_frac_bits_d);
+    return 0;
+}
+
+
+static int read_fvpt_exec_mode(CPURISCVState *env, int csrno, target_ulong *val)
+{
+#if !defined(CONFIG_USER_ONLY)
+    if (!env->debugger && !(env->mstatus & MSTATUS_FS)) {
+        return -1;
+    }
+#endif
+
+    fprintf(stderr, "# read_fvpt_exec_mode %d \n", vpt_exec_mode);
+    *val = vpt_exec_mode;
+    return 0;
+}
+
+static int write_fvpt_exec_mode(CPURISCVState *env, int csrno, target_ulong val)
+{
+#if !defined(CONFIG_USER_ONLY)
+    if (!env->debugger && !(env->mstatus & MSTATUS_FS)) {
+        return -1;
+    }
+    env->mstatus |= MSTATUS_FS;
+#endif
+    
+    vpt_exec_mode = val;
+    fprintf(stderr, "# write_fvpt_exec_mode %d \n", vpt_exec_mode);
+    return 0;
+}
+
+
+
+/* ****************************************************************************************
+    User, Non-Standard Variable Precision in Time CSRs 
+ * ****************************************************************************************/
+
 /* User Timers and Counters */
 static int read_instret(CPURISCVState *env, int csrno, target_ulong *val)
 {
@@ -873,6 +997,12 @@ static riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
     [CSR_FFLAGS] =              { fs,   read_fflags,      write_fflags      },
     [CSR_FRM] =                 { fs,   read_frm,         write_frm         },
     [CSR_FCSR] =                { fs,   read_fcsr,        write_fcsr        },
+
+    /* User, Non-Standard Variable Precision in Time CSRs */
+    [CSR_FVPT_STATUS] =         { fs,   read_fvpt_status , write_fvpt_status },
+    [CSR_FVPT_PREC_F] =         { fs,   read_fvpt_prec_f , write_fvpt_prec_f },
+    [CSR_FVPT_PREC_D] =         { fs,   read_fvpt_prec_d , write_fvpt_prec_d },
+    [CSR_FVPT_EXEC_MODE] =      { fs,   read_fvpt_exec_mode , write_fvpt_exec_mode }, 
 
     /* User Timers and Counters */
     [CSR_CYCLE] =               { ctr,  read_instret                        },

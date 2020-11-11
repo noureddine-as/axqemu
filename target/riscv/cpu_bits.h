@@ -48,6 +48,12 @@
 #define CSR_FRM             0x002
 #define CSR_FCSR            0x003
 
+/* User, Non-Standard Variable Precision in Time CSRs */
+#define CSR_FVPT_STATUS     0x800
+#define CSR_FVPT_PREC_F     0x801
+#define CSR_FVPT_PREC_D     0x802
+#define CSR_FVPT_EXEC_MODE  0x803
+
 /* User Timers and Counters */
 #define CSR_CYCLE           0xc00
 #define CSR_TIME            0xc01

@@ -24,6 +24,18 @@
 #include "fpu/softfloat.h"
 #include "fpu/axspike.h"
 
+/* User, Non-Standard Variable Precision in Time CSRs */
+/* @TODO : These should be part of the CPU, if we want to operate with several precisions
+           for each core !!!
+*/
+uint8_t vpt_status = 0;
+uint8_t vpt_frac_bits_f = 23;
+uint8_t vpt_frac_bits_d = 52;
+uint8_t vpt_exec_mode = 0;
+
+// uint8_t exp_bits_f;
+// uint8_t exp_bits_d;
+
 // Simulation parameters
 extern uint8_t exp_bits_d;
 extern uint8_t frac_bits_d;
