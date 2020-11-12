@@ -28,7 +28,12 @@
 /* @TODO : These should be part of the CPU, if we want to operate with several precisions
            for each core !!!
 */
-uint8_t vpt_status = 0;
+
+#define VPT_ENABLE_BIT_MASK  0x01
+
+uint8_t vpt_status = 0;    /* ENABLE_BIT = 0 --> VPT disabled
+                              ENABLE_BIT = 1 --> VPT enabled
+                            */
 uint8_t vpt_frac_bits_f = 23;
 uint8_t vpt_frac_bits_d = 52;
 uint8_t vpt_exec_mode = 0;
@@ -52,6 +57,8 @@ extern uint64_t non_approx_region_size;
 #define ENABLE_TEXTUAL_TEST_VECTOR          0
 #define ENABLE_BINARY_TEST_VECTOR           0
 #define ENABLE_TEXTUAL_PERF_DEBUG           0
+
+uint8_t enable_binary_test_vector = ENABLE_BINARY_TEST_VECTOR;
 
 // #define MARK_APPROXIMATE   ( (((uint32_t)0x00000001) << 26) )
 #define MARK_APPROXIMATE   ((uint32_t)0x00000000)
@@ -238,7 +245,7 @@ uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     {
         final_result = float32_muladd(frs1, frs2, frs3, 0, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
+        final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
         LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_3("FMADD_S", 1);
     }
@@ -267,7 +274,7 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
         final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
     } else {
         // fprintf(stderr, "MADD_D Executed APPROXIMATELY  --- @ADDR = %08lX     \n", env->pc);
-        final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+        final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FMADD_D", 0);
     }
@@ -287,7 +294,7 @@ uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     {
         final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
+        final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
         LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_S", 1);
     }
@@ -314,7 +321,7 @@ uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     {
         final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+        final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FMSUB_D", 0);
     }
@@ -334,7 +341,7 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     {
         final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_product, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
+        final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
         LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_S", 1);
     }
@@ -364,7 +371,7 @@ uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     {
         final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_product, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+        final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FNMSUB_D", 0);
     }
@@ -384,7 +391,7 @@ uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     {
         final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c | float_muladd_negate_product, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_f, frac_bits_f, (uint8_t)32);
+        final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
         LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_S", 1);
     }
@@ -411,7 +418,7 @@ uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     {
         final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c | float_muladd_negate_product, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+        final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FNMADD_D", 0);
     }
@@ -430,7 +437,7 @@ uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     {
         final_result = float32_add(frs1, frs2, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
+        final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
         LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_2("FADD_S", 1);
     }
@@ -449,7 +456,7 @@ uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     {
         final_result = float32_sub(frs1, frs2, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
+        final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
         LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_2("FSUB_S", 1);
     }
@@ -468,7 +475,7 @@ uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     {
         final_result = float32_mul(frs1, frs2, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
+        final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
         LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_2("FMUL_S", 1);
     }
@@ -487,7 +494,7 @@ uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     {
         final_result = float32_div(frs1, frs2, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_f, frac_bits_f, (uint8_t)32);
+        final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
         LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_2("FDIV_S", 1);
     }
@@ -516,7 +523,7 @@ uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
     {
         final_result = float32_sqrt(frs1, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_sqrtf_round(frs1, env, exp_bits_f, frac_bits_f, (uint8_t)32);
+        final_result = lib_flexfloat_sqrtf_round(frs1, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
         LOG_BINARY_TEST_VECTOR_1(opcode | MARK_APPROXIMATE, 1);
         LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_S", 1);
     }
@@ -619,7 +626,7 @@ uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     {
         final_result = float64_add(frs1, frs2, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+        final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_2("FADD_D", 0);
     }
@@ -644,7 +651,7 @@ uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     {
         final_result = float64_sub(frs1, frs2, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+        final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_2("FSUB_D", 0);
     }
@@ -669,7 +676,7 @@ uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     {
         final_result = float64_mul(frs1, frs2, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+        final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_2("FMUL_D", 0);
     }
@@ -694,7 +701,7 @@ uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     {
         final_result = float64_div(frs1, frs2, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+        final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_2(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_2("FDIV_D", 0);
     }
@@ -738,7 +745,7 @@ uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
     {
         final_result = float64_sqrt(frs1, &env->fp_status);
     } else {
-        final_result = lib_flexfloat_sqrt_round(frs1, env, exp_bits_d, frac_bits_d, (uint8_t)64);
+        final_result = lib_flexfloat_sqrt_round(frs1, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_1(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_1("FSQRT_D", 0);
     }

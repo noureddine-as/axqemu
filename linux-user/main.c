@@ -72,6 +72,8 @@ extern FILE    *binary_test_vector_file;
 extern uint64_t non_approx_region_start;
 extern uint64_t non_approx_region_size;
 
+extern uint8_t enable_binary_test_vector;
+
 // extern uint8_t shift_bits;
 // uint64_t input_mask;
 // uint64_t output_mask;
@@ -920,16 +922,22 @@ int main(int argc, char **argv, char **envp)
         fprintf(stderr, "Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
         fprintf(stderr, "neither of the FPU parameters should be equal to zero.\n");
         exit(-1);
-    }
-    else {
+    } else {
         fprintf(stderr, "# AXQEMU[ linux user mode ]: Exp_Bits_d = %d         Frac_Bits_d = %d\n", exp_bits_d, frac_bits_d);
         fprintf(stderr, "#                           Exp_Bits_f = %d         Frac_Bits_f = %d\n", exp_bits_f, frac_bits_f);
+    }
+
+    if( enable_binary_test_vector )
+    {
         char filename[100] = {0};
         sprintf(filename, "binary_test_vector_expf%02d_fracf%02d_expd%02d_fracd%02d.bin", exp_bits_f, frac_bits_f, exp_bits_d, frac_bits_d);
         if ((binary_test_vector_file = fopen(filename, "wb")) != NULL) {
-            fprintf(stderr, "# Dumping binary test vectors in file < binary_test_vector.bin > \n");
+            fprintf(stderr, "# Dumping binary test vectors in file < %s > \n", filename);
         }
+    } else {
+        fprintf(stderr, "# binary test vector dumping is DEACTIVATED.\n");
     }
+
     // @AXSPIKE : ensure that Non-Approximable Regions parameters are non-zeroes.
     if ((non_approx_region_start == 0) && (non_approx_region_size == 0))
     {
