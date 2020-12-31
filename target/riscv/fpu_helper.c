@@ -24,12 +24,35 @@
 #include "fpu/softfloat.h"
 #include "fpu/axspike.h"
 
+// HAND-MADE Configurations -----------------------------------------------
+
+// Use FlexFloat or GVSoC ------------------------------
+// #define USE_FLEXFLOAT 1
+#define USE_GVSOC_DEF               1
+// -----------------------------------------------------
+
+// WHAT KIND OF DEBUGGING TO ENABLE --------------------
+#define ENABLE_TEXTUAL_TEST_VECTOR          0
+#define ENABLE_BINARY_TEST_VECTOR           1
+#define ENABLE_TEXTUAL_PERF_DEBUG           0
+// -----------------------------------------------------
+
+// HOW THE INSTRUMENTATION IS Activated/Deactivated
+#define INSTRUMENTATION_APPROX_BY_DEFAULT    0
+#define INSTRUMENTATION_VPT_STYLE            1
+// -----------------------------------------------------
+
+// -------------------------------------------------------------------------
+
+
+
 /* User, Non-Standard Variable Precision in Time CSRs */
 /* @TODO : These should be part of the CPU, if we want to operate with several precisions
            for each core !!!
 */
 
-#define VPT_ENABLE_BIT_MASK  0x01
+#define VPT_ENABLE_BIT_MASK             0x01
+#define VPT_INSTRUMENTATION_BIT_MASK    0x01
 
 uint8_t vpt_status = 0;    /* ENABLE_BIT = 0 --> VPT disabled
                               ENABLE_BIT = 1 --> VPT enabled
@@ -51,12 +74,6 @@ extern FILE    *binary_test_vector_file;
 extern uint64_t non_approx_region_start;
 extern uint64_t non_approx_region_size;
 
-// #define USE_FLEXFLOAT 1
-#define USE_GVSOC_DEF               1
-
-#define ENABLE_TEXTUAL_TEST_VECTOR          0
-#define ENABLE_BINARY_TEST_VECTOR           1
-#define ENABLE_TEXTUAL_PERF_DEBUG           0
 
 uint8_t enable_binary_test_vector = ENABLE_BINARY_TEST_VECTOR;
 
@@ -240,9 +257,13 @@ uint64_t helper_fmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float32_muladd(frs1, frs2, frs3, 0, &env->fp_status);
     } else {
         final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
@@ -267,9 +288,13 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         // fprintf(stderr, "MADD_D Executed PRECISELY !!!\n");
         final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
     } else {
@@ -289,9 +314,13 @@ uint64_t helper_fmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c, &env->fp_status);
     } else {
         final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
@@ -316,9 +345,13 @@ uint64_t helper_fmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c, &env->fp_status);
     } else {
         final_result = lib_flexfloat_msub_round(frs1, frs2, frs3, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
@@ -336,9 +369,13 @@ uint64_t helper_fnmsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_product, &env->fp_status);
     } else {
         final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
@@ -366,9 +403,13 @@ uint64_t helper_fnmsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_product, &env->fp_status);
     } else {
         final_result = lib_flexfloat_nmsub_round(frs1, frs2, frs3, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
@@ -386,9 +427,13 @@ uint64_t helper_fnmadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float32_muladd(frs1, frs2, frs3, float_muladd_negate_c | float_muladd_negate_product, &env->fp_status);
     } else {
         final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
@@ -413,9 +458,13 @@ uint64_t helper_fnmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
     frs_out = f64_madd_d_custom(frs1_in, frs2_in, frs3_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float64_muladd(frs1, frs2, frs3, float_muladd_negate_c | float_muladd_negate_product, &env->fp_status);
     } else {
         final_result = lib_flexfloat_nmadd_round(frs1, frs2, frs3, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
@@ -432,9 +481,13 @@ uint64_t helper_fadd_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float32_add(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
@@ -451,9 +504,13 @@ uint64_t helper_fsub_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float32_sub(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
@@ -470,9 +527,13 @@ uint64_t helper_fmul_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float32_mul(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
@@ -489,9 +550,13 @@ uint64_t helper_fdiv_s(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float32_div(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
@@ -518,9 +583,13 @@ uint64_t helper_fsqrt_s(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
 {
     uint64_t final_result;
 #if defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float32_sqrt(frs1, &env->fp_status);
     } else {
         final_result = lib_flexfloat_sqrtf_round(frs1, env, exp_bits_f, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_f : frac_bits_f, (uint8_t)32);
@@ -621,9 +690,13 @@ uint64_t helper_fadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     frs_out = f64_add_d_custom(frs1_in, frs2_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float64_add(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_add_round(frs1, frs2, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
@@ -646,9 +719,13 @@ uint64_t helper_fsub_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     frs_out = f64_sub_d_custom(frs1_in, frs2_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float64_sub(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_sub_round(frs1, frs2, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
@@ -671,9 +748,13 @@ uint64_t helper_fmul_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     frs_out = f64_mul_d_custom(frs1_in, frs2_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float64_mul(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_mul_round(frs1, frs2, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
@@ -696,9 +777,13 @@ uint64_t helper_fdiv_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2, uint32_
     frs_out = f64_div_d_custom(frs1_in, frs2_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float64_div(frs1, frs2, &env->fp_status);
     } else {
         final_result = lib_flexfloat_div_round(frs1, frs2, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
@@ -740,9 +825,13 @@ uint64_t helper_fsqrt_d(CPURISCVState *env, uint64_t frs1, uint32_t opcode)
     frs_out = f64_sqrt_d_custom(frs1_in, &env->fp_status);
     final_result = frs_out.v;
 #elif defined( USE_GVSOC_DEF )
+  #if (INSTRUMENTATION_APPROX_BY_DEFAULT)
     if(unlikely(  (non_approx_region_start != 0) && (non_approx_region_size != 0) &&
                     ((env->pc >= non_approx_region_start) && (env->pc < non_approx_region_start + non_approx_region_size))))
     {
+  #elif ( INSTRUMENTATION_VPT_STYLE )
+    if( (vpt_exec_mode & VPT_INSTRUMENTATION_BIT_MASK) == 0x00 ){
+  #endif
         final_result = float64_sqrt(frs1, &env->fp_status);
     } else {
         final_result = lib_flexfloat_sqrt_round(frs1, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
