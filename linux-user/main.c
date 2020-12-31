@@ -932,10 +932,10 @@ int main(int argc, char **argv, char **envp)
         char filename[100] = {0};
         sprintf(filename, "binary_test_vector_expf%02d_fracf%02d_expd%02d_fracd%02d.bin", exp_bits_f, frac_bits_f, exp_bits_d, frac_bits_d);
         if ((binary_test_vector_file = fopen(filename, "wb")) != NULL) {
-            fprintf(stderr, "# Dumping binary test vectors in file < %s > \n", filename);
+            fprintf(stderr, "# Dumping binary test vectors ACTIVE, output file: < %s > \n", filename);
         }
     } else {
-        fprintf(stderr, "# binary test vector dumping is DEACTIVATED.\n");
+        fprintf(stderr, "# Binary test vector dumping is DEACTIVATED.\n");
     }
 
     // @AXSPIKE : ensure that Non-Approximable Regions parameters are non-zeroes.

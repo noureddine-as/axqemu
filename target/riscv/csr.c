@@ -183,6 +183,43 @@ extern uint8_t vpt_status;
 extern uint8_t vpt_frac_bits_f;
 extern uint8_t vpt_frac_bits_d;
 extern uint8_t vpt_exec_mode;
+/* VPT capabilities in QEMU */
+extern uint8_t enable_binary_test_vector;
+extern FILE    *binary_test_vector_file;
+
+// Example
+//   102d4:	800797f3          	                    csrrw	a5,0x800,a5
+//      CSR_ADDRESS = bin(0x800)   RS1  FUNCT3    RD     SYSTEM
+//                0b100000000000  01111  001    01111  11_100_11
+//      EMPY ONE
+//                0b100000000000  01111  001    01111  11_100_11
+
+// 0x000797f3 | 0x0800 << 20
+#define OPCODE_VIERGE (0x000797f3)
+
+typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
+    uint32_t opp; // Opcode of the whole instruction
+    uint64_t updated_vpt_status; // One-hot encoded signal where, the value = 1 << precision_f
+    uint64_t updated_vpt_frac_bits_f; // One-hot encoded signal where, the value = 1 << precision_f
+    uint64_t updated_vpt_frac_bits_d; // One-hot encoded signal where, the value = 1 << precision_d
+    uint64_t updated_vpt_exec_mode;   // One-hot encoded signal where, the value = vpt_exec_mode
+    uint8_t  padding;          // (37 - 4 - 8*3)-byte Padding to arrive to 37 Bytes allignement.
+} vpt_csr_update_t ;
+
+#define TV_STRUCT_SIZE      (sizeof(vpt_csr_update_t))
+
+// This macro performs an update to all the CSRs in the FPU.
+#define LOG_BINARY_TEST_VECTOR_UPDATE_VPT_REGS(csr_address) if(enable_binary_test_vector){ \
+                                                                vpt_csr_update_t tv_instance = {0}; \
+                                                                tv_instance.opp = (uint32_t)OPCODE_VIERGE | ((uint32_t)csr_address << 20); \
+                                                                tv_instance.updated_vpt_status      = (uint64_t)(vpt_status); \
+                                                                tv_instance.updated_vpt_frac_bits_f = (uint64_t)((uint64_t)0x01 << vpt_frac_bits_f); \
+                                                                tv_instance.updated_vpt_frac_bits_d = (uint64_t)((uint64_t)0x01 << vpt_frac_bits_d); \
+                                                                tv_instance.updated_vpt_exec_mode   = (uint64_t)vpt_exec_mode; \
+                                                                tv_instance.padding = 0; \
+                                                                fwrite(&tv_instance, TV_STRUCT_SIZE, 1, binary_test_vector_file); \
+                                                                fflush(binary_test_vector_file); \
+                                                            }           
 
 static int read_fvpt_status(CPURISCVState *env, int csrno, target_ulong *val)
 {
@@ -208,6 +245,8 @@ static int write_fvpt_status(CPURISCVState *env, int csrno, target_ulong val)
     
     vpt_status = val;
     // fprintf(stderr, "# FVPT_STATUS WRITE %d \n", vpt_status);
+    LOG_BINARY_TEST_VECTOR_UPDATE_VPT_REGS(CSR_FVPT_STATUS);
+
     return 0;
 }
 
@@ -235,6 +274,7 @@ static int write_fvpt_prec_f(CPURISCVState *env, int csrno, target_ulong val)
     
     vpt_frac_bits_f = val;
     // fprintf(stderr, "# write_fvpt_prec_f %d \n", vpt_frac_bits_f);
+    LOG_BINARY_TEST_VECTOR_UPDATE_VPT_REGS(CSR_FVPT_PREC_F);
     return 0;
 }
 
@@ -263,6 +303,7 @@ static int write_fvpt_prec_d(CPURISCVState *env, int csrno, target_ulong val)
     
     vpt_frac_bits_d = val;
     // fprintf(stderr, "# write_fvpt_prec_d %d \n", vpt_frac_bits_d);
+    LOG_BINARY_TEST_VECTOR_UPDATE_VPT_REGS(CSR_FVPT_PREC_D);
     return 0;
 }
 
@@ -291,6 +332,7 @@ static int write_fvpt_exec_mode(CPURISCVState *env, int csrno, target_ulong val)
     
     vpt_exec_mode = val;
     fprintf(stderr, "# write_fvpt_exec_mode %d \n", vpt_exec_mode);
+    // LOG_BINARY_TEST_VECTOR_UPDATE_VPT_REGS(CSR_FVPT_EXEC_MODE)
     return 0;
 }
 
