@@ -185,6 +185,7 @@ extern uint8_t vpt_frac_bits_d;
 extern uint8_t vpt_exec_mode;
 /* VPT capabilities in QEMU */
 extern uint8_t enable_binary_test_vector;
+extern uint8_t enable_instrumentation_vpt_style;
 extern FILE    *binary_test_vector_file;
 
 // Example
@@ -209,7 +210,8 @@ typedef struct __attribute__((__packed__, scalar_storage_order("big-endian"))) {
 #define TV_STRUCT_SIZE      (sizeof(vpt_csr_update_t))
 
 // This macro performs an update to all the CSRs in the FPU.
-#define LOG_BINARY_TEST_VECTOR_UPDATE_VPT_REGS(csr_address) if(enable_binary_test_vector){ \
+#define LOG_BINARY_TEST_VECTOR_UPDATE_VPT_REGS(csr_address) if(  enable_binary_test_vector && \
+                                                                (enable_instrumentation_vpt_style ? vpt_exec_mode : 0x01)){ \
                                                                 vpt_csr_update_t tv_instance = {0}; \
                                                                 tv_instance.opp = (uint32_t)OPCODE_VIERGE | ((uint32_t)csr_address << 20); \
                                                                 tv_instance.updated_vpt_status      = (uint64_t)(vpt_status); \

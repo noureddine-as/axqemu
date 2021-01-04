@@ -75,7 +75,9 @@ extern uint64_t non_approx_region_start;
 extern uint64_t non_approx_region_size;
 
 
-uint8_t enable_binary_test_vector = ENABLE_BINARY_TEST_VECTOR;
+uint8_t enable_binary_test_vector        = ENABLE_BINARY_TEST_VECTOR;
+uint8_t enable_instrumentation_vpt_style = INSTRUMENTATION_VPT_STYLE;
+
 
 // #define MARK_APPROXIMATE   ( (((uint32_t)0x00000001) << 26) )
 #define MARK_APPROXIMATE   ((uint32_t)0x00000000)
