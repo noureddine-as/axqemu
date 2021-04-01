@@ -318,7 +318,7 @@ static int read_fvpt_exec_mode(CPURISCVState *env, int csrno, target_ulong *val)
     }
 #endif
 
-    fprintf(stderr, "# read_fvpt_exec_mode %d \n", vpt_exec_mode);
+    // fprintf(stderr, "# read_fvpt_exec_mode %d \n", vpt_exec_mode);
     *val = vpt_exec_mode;
     return 0;
 }
@@ -333,7 +333,7 @@ static int write_fvpt_exec_mode(CPURISCVState *env, int csrno, target_ulong val)
 #endif
     
     vpt_exec_mode = val;
-    fprintf(stderr, "# write_fvpt_exec_mode %d \n", vpt_exec_mode);
+    // fprintf(stderr, "# write_fvpt_exec_mode %d \n", vpt_exec_mode);
     // LOG_BINARY_TEST_VECTOR_UPDATE_VPT_REGS(CSR_FVPT_EXEC_MODE)
     return 0;
 }

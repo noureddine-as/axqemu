@@ -300,7 +300,7 @@ uint64_t helper_fmadd_d(CPURISCVState *env, uint64_t frs1, uint64_t frs2,
         // fprintf(stderr, "MADD_D Executed PRECISELY !!!\n");
         final_result = float64_muladd(frs1, frs2, frs3, 0, &env->fp_status);
     } else {
-        // fprintf(stderr, "MADD_D Executed APPROXIMATELY  --- @ADDR = %08lX     \n", env->pc);
+        // fprintf(stderr, "MADD_D Executed APPROXIMATELY  --- @ADDR = %08lX     - prec_d = %d\n", env->pc, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d);
         final_result = lib_flexfloat_madd_round(frs1, frs2, frs3, env, exp_bits_d, (vpt_status & VPT_ENABLE_BIT_MASK)? vpt_frac_bits_d : frac_bits_d, (uint8_t)64);
         LOG_BINARY_TEST_VECTOR_3(opcode | MARK_APPROXIMATE, 0);
         LOG_TEXTUAL_TEST_VECTOR_3("FMADD_D", 0);

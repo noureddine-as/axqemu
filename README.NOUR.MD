@@ -147,3 +147,35 @@ aitsaidn@marseille:~/PhD/playground/ctest/test_vector_generator$ ./compile_linux
 # V5.0: Variable Precision in Time
 
 
+# Running Python programs within RISC-V QEMU
+
+- First Compile QEMU statically, using the following commands:
+
+```bash
+cd build
+../configure --target-list=riscv64-linux-user
+make
+```
+- Second, create a `rootfs` using Buildroot
+
+- Extract that rootfs or mount its image somewhere, for example
+```bash
+# Goto working dir
+cd /home/aitsaidn/PhD/playground/axspike/buildroot-2019.08/output/images
+mkdir try
+
+# Mount the rootfs to the folder try
+sudo mount -t ext2 -o rw,loop rootfs.ext2 try
+
+# Copy the statically linked QEMU inside the new rootfs (Because it will be excuted within that context, QEMU should be present somewhere inside that new rootfs)
+sudo cp /home/aitsaidn/PhD/playground/axspike/axspike-next/qemu-next/build-v5.0-variable-prec-in-time/riscv64-linux-user/qemu-riscv64 bin/
+
+# Chroot into the `try` folder, and execute qemu-riscv64 (the one we just copied into the new rootfs)
+
+```
+
+![alt text](Python_on_QEMU.png "Python executed inside QEMU in User Mode with a buildroot-generated rootfs")
+
+The resulting binary test vector stimuli file:
+
+![alt text](Python_on_QEMU_result.png "Python executed inside QEMU in User Mode with a buildroot-generated rootfs")
